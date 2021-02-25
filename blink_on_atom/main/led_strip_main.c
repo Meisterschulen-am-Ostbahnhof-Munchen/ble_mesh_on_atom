@@ -55,7 +55,7 @@ void app_main(void)
         board_led_operation(LED_B, LED_OFF);
 
 
-    	// make a RED + GREEN =  Blink
+    	// make a RED + GREEN = YELLOW  Blink
         ESP_LOGI(TAG, "make a RED + GREEN Blink");
     	vTaskDelay(pdMS_TO_TICKS(EXAMPLE_CHASE_SPEED_MS));
         board_led_operation(LED_R, LED_ON);
@@ -66,7 +66,7 @@ void app_main(void)
     	vTaskDelay(pdMS_TO_TICKS(EXAMPLE_CHASE_SPEED_MS));
         board_led_operation(LED_G, LED_OFF);
 
-    	// make a RED + BLUE =  Blink
+    	// make a RED + BLUE =  PURPLE Blink
         ESP_LOGI(TAG, "make a RED + BLUE Blink");
     	vTaskDelay(pdMS_TO_TICKS(EXAMPLE_CHASE_SPEED_MS));
         board_led_operation(LED_R, LED_ON);
@@ -77,7 +77,7 @@ void app_main(void)
     	vTaskDelay(pdMS_TO_TICKS(EXAMPLE_CHASE_SPEED_MS));
         board_led_operation(LED_B, LED_OFF);
 
-    	// make a GREEN + BLUE =  Blink
+    	// make a GREEN + BLUE = CYAN Blink
         ESP_LOGI(TAG, "make a GREEN + BLUE Blink");
     	vTaskDelay(pdMS_TO_TICKS(EXAMPLE_CHASE_SPEED_MS));
         board_led_operation(LED_G, LED_ON);
