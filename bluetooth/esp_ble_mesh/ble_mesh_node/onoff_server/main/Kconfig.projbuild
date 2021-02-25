@@ -1,16 +1,13 @@
 menu "Example Configuration"
-
-    choice BLE_MESH_EXAMPLE_BOARD
-        prompt "Board selection for BLE Mesh"
-        default BLE_MESH_ESP_WROOM_32
+    config EXAMPLE_RMT_TX_GPIO
+        int "RMT TX GPIO"
+        default 27
         help
-            Select this option to choose the board for BLE Mesh. The default is ESP32-WROOM-32
+            Set the GPIO number used for transmitting the RMT signal.
 
-        config BLE_MESH_ESP_WROOM_32
-            bool "ESP32-WROOM-32"
-
-        config BLE_MESH_ESP_WROVER
-            bool "ESP32-WROVER"
-    endchoice
-
+    config EXAMPLE_STRIP_LED_NUMBER
+        int "Number of LEDS in a strip"
+        default 1
+        help
+            A single RGB strip contains several LEDs.
 endmenu
