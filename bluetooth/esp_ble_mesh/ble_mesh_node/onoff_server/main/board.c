@@ -13,7 +13,7 @@
 #include "esp_log.h"
 #include "board.h"
 
-#define TAG "BOARD"
+static const char *TAG = "BOARD";
 
 struct _led_state led_state[3] = {
     { LED_OFF, LED_OFF, LED_R, "red"   },

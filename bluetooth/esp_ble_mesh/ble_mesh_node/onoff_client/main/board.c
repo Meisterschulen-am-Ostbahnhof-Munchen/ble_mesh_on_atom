@@ -15,7 +15,7 @@
 #include "iot_button.h"
 #include "board.h"
 
-#define TAG "BOARD"
+static const char *TAG = "BOARD";
 
 #define BUTTON_IO_NUM           0
 #define BUTTON_ACTIVE_LEVEL     0
