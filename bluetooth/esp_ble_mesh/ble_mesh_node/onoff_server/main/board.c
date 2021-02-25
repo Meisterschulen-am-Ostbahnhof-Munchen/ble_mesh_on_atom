@@ -48,6 +48,11 @@ void board_led_operation(uint8_t pin, uint8_t on)
         // Write RGB values to strip driver
         switch(pin)
         {
+        case LED_ALL:
+        	red = on ? 0xFF : 0x0;
+        	green = on ? 0xFF : 0x0;
+        	blue = on ? 0xFF : 0x0;
+        	break;
         case LED_R:
         	red = on ? 0xFF : 0x0;
         	break;
@@ -93,6 +98,7 @@ static void board_led_init(void)
     }
     // Clear LED strip (turn off all LEDs)
     ESP_ERROR_CHECK(strip->clear(strip, 100));
+    board_led_operation(LED_ALL, LED_OFF);
 }
 
 void board_init(void)

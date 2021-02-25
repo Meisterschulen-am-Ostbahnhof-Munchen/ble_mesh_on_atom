@@ -15,6 +15,7 @@
 #define LED_R 200
 #define LED_G 202
 #define LED_B 204
+#define LED_ALL 0
 
 
 #define LED_ON  1
