@@ -8,7 +8,7 @@
  */
 
 #include <stdio.h>
-#include <stdlib.h>
+
 #include "sdkconfig.h"
 #include "esp_log.h"
 #include "board.h"
