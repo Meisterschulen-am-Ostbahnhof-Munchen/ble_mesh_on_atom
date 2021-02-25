@@ -21,7 +21,7 @@
 
 static const char *TAG = "BOARD";
 
-#define BUTTON_IO_NUM           0
+#define BUTTON_IO_NUM           39
 #define BUTTON_ACTIVE_LEVEL     0
 
 #define RMT_TX_CHANNEL RMT_CHANNEL_0
