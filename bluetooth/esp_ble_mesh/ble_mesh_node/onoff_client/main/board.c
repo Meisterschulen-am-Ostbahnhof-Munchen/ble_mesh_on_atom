@@ -41,45 +41,51 @@ static uint32_t red = 0;
 static uint32_t green = 0;
 static uint32_t blue = 0;
 
-void board_led_operation(uint8_t pin, uint8_t on)
+void board_led_operation(uint8_t pin, uint8_t onoff)
 {
+
+    //now we want to set the State.
+    // Write RGB values to strip driver
+    switch(pin)
+    {
+    case LED_ALL:
+    	red = onoff ? 0xFF : 0x0;
+    	green = onoff ? 0xFF : 0x0;
+    	blue = onoff ? 0xFF : 0x0;
+		pin = LED_R; //avoid Error.
+    	break;
+    case LED_R:
+    	red = onoff ? 0xFF : 0x0;
+    	break;
+    case LED_G:
+    	green = onoff ? 0xFF : 0x0;
+    	break;
+    case LED_B:
+    	blue = onoff ? 0xFF : 0x0;
+    	break;
+    }
+    for (int j = 0; j < CONFIG_EXAMPLE_STRIP_LED_NUMBER; j++) {
+        // Build RGB values
+    	ESP_ERROR_CHECK(strip->set_pixel(strip, j, red, green, blue));
+        // Flush RGB values to LEDs
+        ESP_ERROR_CHECK(strip->refresh(strip, 100));
+    }
+
+
     for (int i = 0; i < ARRAY_SIZE(led_state); i++) {
         if (led_state[i].pin != pin) {
             continue;
         }
-        if (on == led_state[i].previous) {
+        if (onoff == led_state[i].previous) {
             ESP_LOGW(TAG, "led %s is already %s",
-                     led_state[i].name, (on ? "on" : "off"));
+                     led_state[i].name, (onoff ? "on" : "off"));
             return;
         }
-        //now we want to set the State.
-        // Write RGB values to strip driver
-        switch(pin)
-        {
-        case LED_ALL:
-        	red = on ? 0xFF : 0x0;
-        	green = on ? 0xFF : 0x0;
-        	blue = on ? 0xFF : 0x0;
-        	break;
-        case LED_R:
-        	red = on ? 0xFF : 0x0;
-        	break;
-        case LED_G:
-        	green = on ? 0xFF : 0x0;
-        	break;
-        case LED_B:
-        	blue = on ? 0xFF : 0x0;
-        	break;
-        }
-        for (int j = 0; j < CONFIG_EXAMPLE_STRIP_LED_NUMBER; j++) {
-            // Build RGB values
-        	ESP_ERROR_CHECK(strip->set_pixel(strip, j, red, green, blue));
-            // Flush RGB values to LEDs
-            ESP_ERROR_CHECK(strip->refresh(strip, 100));
-        }
-        led_state[i].previous = on;
+		// no GPIO to set !
+        led_state[i].previous = onoff;
         return;
     }
+
     ESP_LOGE(TAG, "LED is not found!");
 }
 
