@@ -24,7 +24,7 @@
 #include "board.h"
 #include "ble_mesh_example_init.h"
 
-#define TAG "EXAMPLE"
+static const char *TAG = "EXAMPLE";
 
 #define CID_ESP 0x02E5
 
