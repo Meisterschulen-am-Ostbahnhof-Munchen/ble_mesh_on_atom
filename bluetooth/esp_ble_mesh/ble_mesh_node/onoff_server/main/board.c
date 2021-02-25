@@ -35,7 +35,7 @@ static uint32_t blue = 0;
 
 void board_led_operation(uint8_t pin, uint8_t on)
 {
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < ARRAY_SIZE(led_state); i++) {
         if (led_state[i].pin != pin) {
             continue;
         }
@@ -67,13 +67,12 @@ void board_led_operation(uint8_t pin, uint8_t on)
         led_state[i].previous = on;
         return;
     }
-
     ESP_LOGE(TAG, "LED is not found!");
 }
 
 static void board_led_init(void)
 {
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < ARRAY_SIZE(led_state); i++) {
 
         led_state[i].previous = LED_OFF;
     }
