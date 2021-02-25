@@ -99,15 +99,10 @@ static esp_ble_mesh_comp_t composition = {
 /* Disable OOB security for SILabs Android app */
 static esp_ble_mesh_prov_t provision = {
     .uuid = dev_uuid,
-#if 0
     .output_size = 4,
     .output_actions = ESP_BLE_MESH_DISPLAY_NUMBER,
     .input_actions = ESP_BLE_MESH_PUSH,
     .input_size = 4,
-#else
-    .output_size = 0,
-    .output_actions = 0,
-#endif
 };
 
 static void prov_complete(uint16_t net_idx, uint16_t addr, uint8_t flags, uint32_t iv_index)
