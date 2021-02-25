@@ -14,6 +14,7 @@
 #include "board.h"
 #include "driver/rmt.h"
 #include "led_strip.h"
+#include "mesh_util.h"
 
 static const char *TAG = "BOARD";
 

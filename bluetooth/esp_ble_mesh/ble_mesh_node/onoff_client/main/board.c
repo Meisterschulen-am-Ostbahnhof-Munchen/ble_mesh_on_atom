@@ -17,9 +17,12 @@
 #include "board.h"
 #include "driver/rmt.h"
 #include "led_strip.h"
+#include "mesh_util.h"
 
 static const char *TAG = "BOARD";
 
+#define BUTTON_IO_NUM           0
+#define BUTTON_ACTIVE_LEVEL     0
 
 #define RMT_TX_CHANNEL RMT_CHANNEL_0
 
