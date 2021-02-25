@@ -9,11 +9,8 @@
 
 #include <stdio.h>
 
-#include "driver/gpio.h"
 #include "sdkconfig.h"
 #include "esp_log.h"
-
-#include "iot_button.h"
 #include "board.h"
 #include "driver/rmt.h"
 #include "led_strip.h"
@@ -21,15 +18,11 @@
 
 static const char *TAG = "BOARD";
 
-#define BUTTON_IO_NUM           39
-#define BUTTON_ACTIVE_LEVEL     0
 
 #define RMT_TX_CHANNEL RMT_CHANNEL_0
 
 
 static led_strip_t *strip = (led_strip_t *)0;
-
-extern void example_ble_mesh_send_gen_onoff_set(void);
 
 static struct _led_state led_state[3] = {
     { LED_OFF, LED_OFF, LED_R, "red"   },
@@ -41,51 +34,40 @@ static uint32_t red = 0;
 static uint32_t green = 0;
 static uint32_t blue = 0;
 
-void board_led_operation(uint8_t pin, uint8_t onoff)
+void board_led_operation(uint8_t pin, uint8_t on)
 {
-
-    //now we want to set the State.
-    // Write RGB values to strip driver
-    switch(pin)
-    {
-    case LED_ALL:
-    	red = onoff ? 0xFF : 0x0;
-    	green = onoff ? 0xFF : 0x0;
-    	blue = onoff ? 0xFF : 0x0;
-		pin = LED_R; //avoid Error.
-    	break;
-    case LED_R:
-    	red = onoff ? 0xFF : 0x0;
-    	break;
-    case LED_G:
-    	green = onoff ? 0xFF : 0x0;
-    	break;
-    case LED_B:
-    	blue = onoff ? 0xFF : 0x0;
-    	break;
-    }
-    for (int j = 0; j < CONFIG_EXAMPLE_STRIP_LED_NUMBER; j++) {
-        // Build RGB values
-    	ESP_ERROR_CHECK(strip->set_pixel(strip, j, red, green, blue));
-        // Flush RGB values to LEDs
-        ESP_ERROR_CHECK(strip->refresh(strip, 100));
-    }
-
-
     for (int i = 0; i < ARRAY_SIZE(led_state); i++) {
         if (led_state[i].pin != pin) {
             continue;
         }
-        if (onoff == led_state[i].previous) {
+        if (on == led_state[i].previous) {
             ESP_LOGW(TAG, "led %s is already %s",
-                     led_state[i].name, (onoff ? "on" : "off"));
+                     led_state[i].name, (on ? "on" : "off"));
             return;
         }
-		// no GPIO to set !
-        led_state[i].previous = onoff;
+        //now we want to set the State.
+        // Write RGB values to strip driver
+        switch(pin)
+        {
+        case LED_R:
+        	red = on ? 0xFF : 0x0;
+        	break;
+        case LED_G:
+        	green = on ? 0xFF : 0x0;
+        	break;
+        case LED_B:
+        	blue = on ? 0xFF : 0x0;
+        	break;
+        }
+        for (int j = 0; j < CONFIG_EXAMPLE_STRIP_LED_NUMBER; j++) {
+            // Build RGB values
+        	ESP_ERROR_CHECK(strip->set_pixel(strip, j, red, green, blue));
+            // Flush RGB values to LEDs
+            ESP_ERROR_CHECK(strip->refresh(strip, 100));
+        }
+        led_state[i].previous = on;
         return;
     }
-
     ESP_LOGE(TAG, "LED is not found!");
 }
 
@@ -112,26 +94,9 @@ static void board_led_init(void)
     }
     // Clear LED strip (turn off all LEDs)
     ESP_ERROR_CHECK(strip->clear(strip, 100));
-    board_led_operation(LED_ALL, LED_OFF);
-}
-
-static void button_tap_cb(void* arg)
-{
-    ESP_LOGI(TAG, "tap cb (%s)", (char *)arg);
-
-    example_ble_mesh_send_gen_onoff_set();
-}
-
-static void board_button_init(void)
-{
-    button_handle_t btn_handle = iot_button_create(BUTTON_IO_NUM, BUTTON_ACTIVE_LEVEL);
-    if (btn_handle) {
-        iot_button_set_evt_cb(btn_handle, BUTTON_CB_RELEASE, button_tap_cb, "RELEASE");
-    }
 }
 
 void board_init(void)
 {
     board_led_init();
-    board_button_init();
 }

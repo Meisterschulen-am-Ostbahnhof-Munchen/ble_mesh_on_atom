@@ -9,11 +9,19 @@
 
 #include <stdio.h>
 
-#include "driver/gpio.h"
+#include "sdkconfig.h"
 #include "esp_log.h"
 #include "board.h"
+#include "driver/rmt.h"
+#include "led_strip.h"
 
-#define TAG "BOARD"
+static const char *TAG = "BOARD";
+
+
+#define RMT_TX_CHANNEL RMT_CHANNEL_0
+
+
+static led_strip_t *strip = (led_strip_t *)0;
 
 struct _led_state led_state[3] = {
     { LED_OFF, LED_OFF, LED_R, "red"   },
@@ -21,8 +29,41 @@ struct _led_state led_state[3] = {
     { LED_OFF, LED_OFF, LED_B, "blue"  },
 };
 
+static uint32_t red = 0;
+static uint32_t green = 0;
+static uint32_t blue = 0;
+
 void board_led_operation(uint8_t pin, uint8_t onoff)
 {
+
+    //now we want to set the State.
+    // Write RGB values to strip driver
+    switch(pin)
+    {
+    case LED_ALL:
+    	red = onoff ? 0xFF : 0x0;
+    	green = onoff ? 0xFF : 0x0;
+    	blue = onoff ? 0xFF : 0x0;
+		pin = LED_R; //avoid Error.
+    	break;
+    case LED_R:
+    	red = onoff ? 0xFF : 0x0;
+    	break;
+    case LED_G:
+    	green = onoff ? 0xFF : 0x0;
+    	break;
+    case LED_B:
+    	blue = onoff ? 0xFF : 0x0;
+    	break;
+    }
+    for (int j = 0; j < CONFIG_EXAMPLE_STRIP_LED_NUMBER; j++) {
+        // Build RGB values
+    	ESP_ERROR_CHECK(strip->set_pixel(strip, j, red, green, blue));
+        // Flush RGB values to LEDs
+        ESP_ERROR_CHECK(strip->refresh(strip, 100));
+    }
+
+
     for (int i = 0; i < 3; i++) {
         if (led_state[i].pin != pin) {
             continue;
@@ -32,7 +73,7 @@ void board_led_operation(uint8_t pin, uint8_t onoff)
                      led_state[i].name, (onoff ? "on" : "off"));
             return;
         }
-        gpio_set_level(pin, onoff);
+		// no GPIO to set !
         led_state[i].previous = onoff;
         return;
     }
@@ -43,11 +84,27 @@ void board_led_operation(uint8_t pin, uint8_t onoff)
 static void board_led_init(void)
 {
     for (int i = 0; i < 3; i++) {
-        gpio_pad_select_gpio(led_state[i].pin);
-        gpio_set_direction(led_state[i].pin, GPIO_MODE_OUTPUT);
-        gpio_set_level(led_state[i].pin, LED_OFF);
+
         led_state[i].previous = LED_OFF;
     }
+
+
+    rmt_config_t config = RMT_DEFAULT_CONFIG_TX(CONFIG_EXAMPLE_RMT_TX_GPIO, RMT_TX_CHANNEL);
+    // set counter clock to 40MHz
+    config.clk_div = 2;
+
+    ESP_ERROR_CHECK(rmt_config(&config));
+    ESP_ERROR_CHECK(rmt_driver_install(config.channel, 0, 0));
+
+    // install ws2812 driver
+    led_strip_config_t strip_config = LED_STRIP_DEFAULT_CONFIG(CONFIG_EXAMPLE_STRIP_LED_NUMBER, (led_strip_dev_t)config.channel);
+    strip = led_strip_new_rmt_ws2812(&strip_config);
+    if (!strip) {
+        ESP_LOGE(TAG, "install WS2812 driver failed");
+    }
+    // Clear LED strip (turn off all LEDs)
+    ESP_ERROR_CHECK(strip->clear(strip, 100));
+    board_led_operation(LED_ALL, LED_OFF);
 }
 
 void board_init(void)
