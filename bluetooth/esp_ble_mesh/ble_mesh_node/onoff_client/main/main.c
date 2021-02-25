@@ -25,6 +25,8 @@
 
 static const char *TAG = "EXAMPLE";
 
+static bool prov_complete_true = false;
+
 #define CID_ESP 0x02E5
 
 static uint8_t dev_uuid[16] = { 0xdd, 0xdd };
@@ -122,6 +124,7 @@ static void prov_complete(uint16_t net_idx, uint16_t addr, uint8_t flags, uint32
     ESP_LOGI(TAG, "net_idx: 0x%04x, addr: 0x%04x", net_idx, addr);
     ESP_LOGI(TAG, "flags: 0x%02x, iv_index: 0x%08x", flags, iv_index);
     board_led_operation(LED_G, LED_OFF);
+    prov_complete_true = true;
     store.net_idx = net_idx;
     /* mesh_example_info_store() shall not be invoked here, because if the device
      * is restarted and goes into a provisioned state, then the following events
@@ -285,7 +288,8 @@ static esp_err_t ble_mesh_init(void)
 
     ESP_LOGI(TAG, "BLE Mesh Node initialized");
 
-    board_led_operation(LED_G, LED_ON);
+    //this is Wrong. it might have loaded Provisioning from NVS, so we do not want to switch on Green in any case.
+    board_led_operation(LED_G, prov_complete_true ? LED_OFF: LED_ON);
 
     return err;
 }
