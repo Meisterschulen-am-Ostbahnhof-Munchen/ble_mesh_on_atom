@@ -23,7 +23,7 @@ static const char *TAG = "BOARD";
 
 static led_strip_t *strip = (led_strip_t *)0;
 
-static struct _led_state led_state[3] = {
+struct _led_state led_state[3] = {
     { LED_OFF, LED_OFF, LED_R, "red"   },
     { LED_OFF, LED_OFF, LED_G, "green" },
     { LED_OFF, LED_OFF, LED_B, "blue"  },
