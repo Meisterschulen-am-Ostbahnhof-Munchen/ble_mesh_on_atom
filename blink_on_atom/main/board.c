@@ -58,10 +58,13 @@ void board_led_operation(uint8_t pin, uint8_t on)
         	blue = on ? 0xFF : 0x0;
         	break;
         }
-        ESP_ERROR_CHECK(strip->set_pixel(strip, 0, red, green, blue));
+        for (int j = 0; j < CONFIG_EXAMPLE_STRIP_LED_NUMBER; j++) {
+            // Build RGB values
+        	ESP_ERROR_CHECK(strip->set_pixel(strip, j, red, green, blue));
+            // Flush RGB values to LEDs
+            ESP_ERROR_CHECK(strip->refresh(strip, 100));
+        }
         led_state[i].previous = on;
-        // Flush RGB values to LEDs
-        ESP_ERROR_CHECK(strip->refresh(strip, 100));
         return;
     }
 
