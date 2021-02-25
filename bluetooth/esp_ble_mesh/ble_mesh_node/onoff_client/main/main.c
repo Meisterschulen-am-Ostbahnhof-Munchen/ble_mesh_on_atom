@@ -84,7 +84,6 @@ static esp_ble_mesh_comp_t composition = {
     .element_count = ARRAY_SIZE(elements),
 };
 
-/* Disable OOB security for SILabs Android app */
 static esp_ble_mesh_prov_t provision = {
     .uuid = dev_uuid,
     .output_size = 4,
