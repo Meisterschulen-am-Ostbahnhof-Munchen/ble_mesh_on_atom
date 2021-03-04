@@ -243,6 +243,11 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
     }
 }
 
+void example_ble_mesh_send_gen_onoff_set(void)
+{
+	//dummy
+}
+
 static void example_ble_mesh_parse_node_comp_data(const uint8_t *data, uint16_t length)
 {
     uint16_t cid, pid, vid, crpl, feat;
