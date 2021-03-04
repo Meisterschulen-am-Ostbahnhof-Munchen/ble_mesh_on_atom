@@ -14,6 +14,7 @@
 #include "board.h"
 #include "driver/rmt.h"
 #include "led_strip.h"
+#include "mesh_util.h"
 
 static const char *TAG = "BOARD";
 
@@ -64,7 +65,7 @@ void board_led_operation(uint8_t pin, uint8_t onoff)
     }
 
 
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < ARRAY_SIZE(led_state); i++) {
         if (led_state[i].pin != pin) {
             continue;
         }
