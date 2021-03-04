@@ -1,3 +1,3 @@
 idf_component_register(SRCS "board.c"
                     INCLUDE_DIRS  "."
-                    REQUIRES led_strip bt)
+                    REQUIRES led_strip button bt)

@@ -27,7 +27,7 @@
 
 #include "esp_ble_mesh_defs.h"
 
-#define TAG "EXAMPLE_INIT"
+static const char *TAG = "EXAMPLE_INIT";
 
 #ifdef CONFIG_BT_BLUEDROID_ENABLED
 void ble_mesh_get_dev_uuid(uint8_t *dev_uuid)
