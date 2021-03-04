@@ -205,6 +205,9 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
     }
 }
 
+void example_ble_mesh_send_gen_onoff_set(void)
+{
+}
 static void example_ble_mesh_generic_server_cb(esp_ble_mesh_generic_server_cb_event_t event,
                                                esp_ble_mesh_generic_server_cb_param_t *param)
 {
