@@ -196,6 +196,10 @@ void example_ble_mesh_send_gen_onoff_set(void)
 {
 	//dummy
 }
+void example_ble_mesh_send_sensor_message(uint32_t opcode)
+{
+	//dummy
+}
 static void example_ble_mesh_config_server_cb(esp_ble_mesh_cfg_server_cb_event_t event,
                                               esp_ble_mesh_cfg_server_cb_param_t *param)
 {
