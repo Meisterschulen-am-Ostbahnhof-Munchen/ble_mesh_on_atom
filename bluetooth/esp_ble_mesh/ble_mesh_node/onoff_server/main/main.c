@@ -21,12 +21,12 @@
 #include "esp_ble_mesh_generic_model_api.h"
 #include "esp_ble_mesh_local_data_operation_api.h"
 
-#include "board.h"
 #include "ble_mesh_example_init.h"
+#include "board.h"
 
 static const char *TAG = "EXAMPLE";
 
-#define CID_ESP 0x02E5
+#define CID_ESP     0x02E5
 
 extern struct _led_state led_state[3];
 
