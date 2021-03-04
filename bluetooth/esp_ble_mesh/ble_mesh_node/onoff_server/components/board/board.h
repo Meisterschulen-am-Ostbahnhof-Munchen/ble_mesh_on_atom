@@ -32,4 +32,4 @@ void board_led_operation(uint8_t pin, uint8_t onoff);
 
 void board_init(void);
 
-#endif
+#endif /* _BOARD_H_ */

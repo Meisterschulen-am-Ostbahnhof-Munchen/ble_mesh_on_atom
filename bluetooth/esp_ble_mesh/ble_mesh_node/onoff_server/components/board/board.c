@@ -18,6 +18,7 @@
 #include "driver/rmt.h"
 #include "led_strip.h"
 #include "mesh_util.h"
+#include "esp_ble_mesh_sensor_model_api.h"
 
 static const char *TAG = "BOARD";
 
@@ -30,6 +31,16 @@ static const char *TAG = "BOARD";
 static led_strip_t *strip = (led_strip_t *)0;
 
 extern void example_ble_mesh_send_gen_onoff_set(void);
+extern void example_ble_mesh_send_sensor_message(uint32_t opcode);
+
+static uint32_t send_opcode[] = {
+    [0] = ESP_BLE_MESH_MODEL_OP_SENSOR_DESCRIPTOR_GET,
+    [1] = ESP_BLE_MESH_MODEL_OP_SENSOR_CADENCE_GET,
+    [2] = ESP_BLE_MESH_MODEL_OP_SENSOR_SETTINGS_GET,
+    [3] = ESP_BLE_MESH_MODEL_OP_SENSOR_GET,
+    [4] = ESP_BLE_MESH_MODEL_OP_SENSOR_SERIES_GET,
+};
+static uint8_t press_count;
 
 struct _led_state led_state[3] = {
     { LED_OFF, LED_OFF, LED_R, "red"   },
@@ -120,6 +131,8 @@ static void button_tap_cb(void* arg)
     ESP_LOGI(TAG, "tap cb (%s)", (char *)arg);
 
     example_ble_mesh_send_gen_onoff_set();
+    example_ble_mesh_send_sensor_message(send_opcode[press_count++]);
+    press_count = press_count % ARRAY_SIZE(send_opcode);
 }
 
 static void board_button_init(void)
