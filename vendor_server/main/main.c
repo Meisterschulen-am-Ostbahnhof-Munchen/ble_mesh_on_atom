@@ -37,8 +37,9 @@ static const char *TAG = "vendor_server_example";
 
 static uint8_t dev_uuid[ESP_BLE_MESH_OCTET16_LEN] = { 0x32, 0x10 };
 
+static bool prov_complete_true = false;
 static nvs_handle_t NVS_HANDLE;
-static const char * NVS_KEY = "vendor_server";
+//static const char * NVS_KEY = "vendor_server";
 static esp_ble_mesh_cfg_srv_t config_server = {
     .relay = ESP_BLE_MESH_RELAY_DISABLED,
     .beacon = ESP_BLE_MESH_BEACON_ENABLED,
