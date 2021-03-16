@@ -20,6 +20,22 @@ static const char *TAG = "example";
 #define EXAMPLE_CHASE_SPEED_MS (1000)
 
 
+void example_ble_mesh_send_gen_onoff_set(void)
+{
+	//dummy
+}
+
+void example_ble_mesh_send_sensor_message(uint32_t opcode)
+{
+	//dummy
+}
+
+void example_ble_mesh_send_vendor_message(bool resend)
+{
+	//dummy
+}
+
+
 void app_main(void)
 {
 
