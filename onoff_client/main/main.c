@@ -194,10 +194,17 @@ void example_ble_mesh_send_gen_onoff_set(void)
     store.onoff = !store.onoff;
     mesh_example_info_store(); /* Store proper mesh example info */
 }
+
 void example_ble_mesh_send_sensor_message(uint32_t opcode)
 {
 	//dummy
 }
+
+void example_ble_mesh_send_vendor_message(bool resend)
+{
+	//dummy
+}
+
 
 static void example_ble_mesh_generic_client_cb(esp_ble_mesh_generic_client_cb_event_t event,
                                                esp_ble_mesh_generic_client_cb_param_t *param)

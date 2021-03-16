@@ -452,6 +452,11 @@ void example_ble_mesh_send_sensor_message(uint32_t opcode)
     }
 }
 
+void example_ble_mesh_send_vendor_message(bool resend)
+{
+	//dummy
+}
+
 static void example_ble_mesh_sensor_timeout(uint32_t opcode)
 {
     switch (opcode) {
