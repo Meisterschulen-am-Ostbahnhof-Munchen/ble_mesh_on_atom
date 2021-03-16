@@ -660,6 +660,7 @@ static void example_ble_mesh_sensor_client_cb(esp_ble_mesh_sensor_client_cb_even
         break;
     case ESP_BLE_MESH_SENSOR_CLIENT_TIMEOUT_EVT:
         example_ble_mesh_sensor_timeout(param->params->opcode);
+        break;
     default:
         break;
     }
@@ -698,7 +699,7 @@ static esp_err_t ble_mesh_init(void)
 
     err = esp_ble_mesh_provisioner_add_local_app_key(prov_key.app_key, prov_key.net_idx, prov_key.app_idx);
     if (err) {
-        ESP_LOGE(TAG, "Failed to add local AppKey" (err %d %s)", err, esp_err_to_name(err));
+        ESP_LOGE(TAG, "Failed to add local AppKey (err %d %s)", err, esp_err_to_name(err));
         return err;
     }
 

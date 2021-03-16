@@ -46,6 +46,10 @@ static int8_t outdoor_temp = 60;    /* Outdoor temperature is 30 Degrees Celsius
 #define SENSOR_MEASURE_PERIOD       ESP_BLE_MESH_SENSOR_NOT_APPL_MEASURE_PERIOD
 #define SENSOR_UPDATE_INTERVAL      ESP_BLE_MESH_SENSOR_NOT_APPL_UPDATE_INTERVAL
 
+
+static nvs_handle_t NVS_HANDLE;
+static const char * NVS_KEY = "sensor_server";
+
 static uint8_t dev_uuid[ESP_BLE_MESH_OCTET16_LEN] = { 0x32, 0x10 };
 
 static esp_ble_mesh_cfg_srv_t config_server = {

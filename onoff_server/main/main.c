@@ -33,6 +33,8 @@ extern struct _led_state led_state[3];
 static uint8_t dev_uuid[16] = { 0xdd, 0xdd };
 
 static bool prov_complete_true = false;
+static nvs_handle_t NVS_HANDLE;
+static const char * NVS_KEY = "onoff_server";
 
 static esp_ble_mesh_cfg_srv_t config_server = {
     .relay = ESP_BLE_MESH_RELAY_DISABLED,

@@ -36,6 +36,8 @@
 
 static uint8_t dev_uuid[ESP_BLE_MESH_OCTET16_LEN] = { 0x32, 0x10 };
 
+static nvs_handle_t NVS_HANDLE;
+static const char * NVS_KEY = "vendor_server";
 static esp_ble_mesh_cfg_srv_t config_server = {
     .relay = ESP_BLE_MESH_RELAY_DISABLED,
     .beacon = ESP_BLE_MESH_BEACON_ENABLED,
