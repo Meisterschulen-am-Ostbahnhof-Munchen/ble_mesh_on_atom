@@ -314,8 +314,8 @@ send:
 
     err = esp_ble_mesh_server_model_send_msg(param->model, &param->ctx,
             ESP_BLE_MESH_MODEL_OP_SENSOR_DESCRIPTOR_STATUS, length, status);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to send Sensor Descriptor Status");
+    if (err) {
+        ESP_LOGE(TAG, "Failed to send Sensor Descriptor Status (err %d %s)", err, esp_err_to_name(err));
     }
     free(status);
 }
@@ -329,8 +329,8 @@ static void example_ble_mesh_send_sensor_cadence_status(esp_ble_mesh_sensor_serv
             ESP_BLE_MESH_MODEL_OP_SENSOR_CADENCE_STATUS,
             ESP_BLE_MESH_SENSOR_PROPERTY_ID_LEN,
             (uint8_t *)&param->value.get.sensor_cadence.property_id);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to send Sensor Cadence Status");
+    if (err) {
+        ESP_LOGE(TAG, "Failed to send Sensor Cadence Status (err %d %s)", err, esp_err_to_name(err));
     }
 }
 
@@ -343,8 +343,8 @@ static void example_ble_mesh_send_sensor_settings_status(esp_ble_mesh_sensor_ser
             ESP_BLE_MESH_MODEL_OP_SENSOR_SETTINGS_STATUS,
             ESP_BLE_MESH_SENSOR_PROPERTY_ID_LEN,
             (uint8_t *)&param->value.get.sensor_settings.property_id);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to send Sensor Settings Status");
+    if (err) {
+        ESP_LOGE(TAG, "Failed to send Sensor Settings Status (err %d %s)", err, esp_err_to_name(err));
     }
 }
 
@@ -371,8 +371,8 @@ static void example_ble_mesh_send_sensor_setting_status(esp_ble_mesh_sensor_serv
     err = esp_ble_mesh_server_model_send_msg(param->model, &param->ctx,
             ESP_BLE_MESH_MODEL_OP_SENSOR_SETTING_STATUS,
             sizeof(setting), (uint8_t *)&setting);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to send Sensor Setting Status");
+    if (err) {
+        ESP_LOGE(TAG, "Failed to send Sensor Setting Status (err %d %s)", err, esp_err_to_name(err));
     }
 }
 
@@ -487,8 +487,8 @@ send:
 
     err = esp_ble_mesh_server_model_send_msg(param->model, &param->ctx,
             ESP_BLE_MESH_MODEL_OP_SENSOR_STATUS, length, status);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to send Sensor Status");
+    if (err) {
+        ESP_LOGE(TAG, "Failed to send Sensor Status (err %d %s)", err, esp_err_to_name(err));
     }
     free(status);
 }
@@ -513,8 +513,8 @@ static void example_ble_mesh_send_sensor_column_status(esp_ble_mesh_sensor_serve
 
     err = esp_ble_mesh_server_model_send_msg(param->model, &param->ctx,
             ESP_BLE_MESH_MODEL_OP_SENSOR_COLUMN_STATUS, length, status);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to send Sensor Column Status");
+    if (err) {
+        ESP_LOGE(TAG, "Failed to send Sensor Column Status (err %d %s)", err, esp_err_to_name(err));
     }
     free(status);
 }
@@ -527,8 +527,8 @@ static void example_ble_mesh_send_sensor_series_status(esp_ble_mesh_sensor_serve
             ESP_BLE_MESH_MODEL_OP_SENSOR_SERIES_STATUS,
             ESP_BLE_MESH_SENSOR_PROPERTY_ID_LEN,
             (uint8_t *)&param->value.get.sensor_series.property_id);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to send Sensor Column Status");
+    if (err) {
+        ESP_LOGE(TAG, "Failed to send Sensor Column Status (err %d %s)", err, esp_err_to_name(err));
     }
 }
 
@@ -603,37 +603,39 @@ static void example_ble_mesh_sensor_server_cb(esp_ble_mesh_sensor_server_cb_even
 
 static esp_err_t ble_mesh_init(void)
 {
-    esp_err_t err;
+    esp_err_t err = ESP_OK;
 
     esp_ble_mesh_register_prov_callback(example_ble_mesh_provisioning_cb);
     esp_ble_mesh_register_config_server_callback(example_ble_mesh_config_server_cb);
     esp_ble_mesh_register_sensor_server_callback(example_ble_mesh_sensor_server_cb);
 
     err = esp_ble_mesh_init(&provision, &composition);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to initialize mesh stack");
+    if (err) {
+        ESP_LOGE(TAG, "Failed to initialize mesh stack (err %d %s)", err, esp_err_to_name(err));
         return err;
     }
 
     err = esp_ble_mesh_node_prov_enable(ESP_BLE_MESH_PROV_ADV | ESP_BLE_MESH_PROV_GATT);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to enable mesh node");
+    if (err) {
+        ESP_LOGE(TAG, "Failed to enable mesh node (err %d %s)", err, esp_err_to_name(err));
         return err;
     }
 
-	//this is Wrong. it might have loaded Provisioning from NVS, so we do not want to switch on Green in any case.
-    board_led_operation(LED_G, LED_ON);
-
     ESP_LOGI(TAG, "BLE Mesh sensor server initialized");
+
+    // Green means we are unprovisioned
+    board_led_operation(LED_G, prov_complete_true ? LED_OFF: LED_ON);
 
     return err;
 }
 
 void app_main(void)
 {
-    esp_err_t err;
+    esp_err_t err = ESP_OK;
 
     ESP_LOGI(TAG, "Initializing...");
+
+    board_init();
 
     err = nvs_flash_init();
     if (err == ESP_ERR_NVS_NO_FREE_PAGES) {
@@ -642,11 +644,15 @@ void app_main(void)
     }
     ESP_ERROR_CHECK(err);
 
-    board_init();
-
     err = bluetooth_init();
     if (err) {
         ESP_LOGE(TAG, "esp32_bluetooth_init failed (err %d %s)", err, esp_err_to_name(err));
+        return;
+    }
+
+    /* Open nvs namespace for storing/restoring mesh example info */
+    err = ble_mesh_nvs_open(&NVS_HANDLE);
+    if (err) {
         return;
     }
 

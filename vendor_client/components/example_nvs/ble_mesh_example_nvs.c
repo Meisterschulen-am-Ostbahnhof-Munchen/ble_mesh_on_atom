@@ -26,7 +26,7 @@ esp_err_t ble_mesh_nvs_open(nvs_handle_t *handle)
     }
 
     err = nvs_open(NVS_NAME, NVS_READWRITE, handle);
-    if (err != ESP_OK) {
+    if (err) {
         ESP_LOGE(TAG, "Open, nvs_open failed, err %d %s", err, esp_err_to_name(err));
         return err;
     }
@@ -45,13 +45,13 @@ esp_err_t ble_mesh_nvs_store(nvs_handle_t handle, const char *key, const void *d
     }
 
     err = nvs_set_blob(handle, key, data, length);
-    if (err != ESP_OK) {
+    if (err) {
         ESP_LOGE(TAG, "Store, nvs_set_blob failed, err %d %s", err, esp_err_to_name(err));
         return err;
     }
 
     err = nvs_commit(handle);
-    if (err != ESP_OK) {
+    if (err) {
         ESP_LOGE(TAG, "Store, nvs_commit failed, err %d %s", err, esp_err_to_name(err));
         return err;
     }
@@ -77,7 +77,7 @@ esp_err_t ble_mesh_nvs_get_length(nvs_handle_t handle, const char *key, size_t *
         return ESP_OK;
     }
 
-    if (err != ESP_OK) {
+    if (err) {
         ESP_LOGE(TAG, "Get length, nvs_get_blob failed, err %d %s", err, esp_err_to_name(err));
     } else {
         ESP_LOGI(TAG, "Get length, key \"%s\", length %u", key, *length);
@@ -108,7 +108,7 @@ esp_err_t ble_mesh_nvs_restore(nvs_handle_t handle, const char *key, void *data,
         *exist = true;
     }
 
-    if (err != ESP_OK) {
+    if (err) {
         ESP_LOGE(TAG, "Restore, nvs_get_blob failed, err %d %s", err, esp_err_to_name(err));
     } else {
         ESP_LOGI(TAG, "Restore, key \"%s\", length %u", key, length);
@@ -131,13 +131,13 @@ esp_err_t ble_mesh_nvs_erase(nvs_handle_t handle, const char *key)
     } else {
         err = nvs_erase_all(handle);
     }
-    if (err != ESP_OK) {
+    if (err) {
         ESP_LOGE(TAG, "Erase, nvs_erase_%s failed, err %d", key ? "key" : "all", err);
         return err;
     }
 
     err = nvs_commit(handle);
-    if (err != ESP_OK) {
+    if (err) {
         ESP_LOGE(TAG, "Erase, nvs_commit failed, err %d %s", err, esp_err_to_name(err));
         return err;
     }

@@ -193,38 +193,42 @@ static void example_ble_mesh_custom_model_cb(esp_ble_mesh_model_cb_event_t event
     }
 }
 
+
 static esp_err_t ble_mesh_init(void)
 {
-    esp_err_t err;
+    esp_err_t err = ESP_OK;
 
     esp_ble_mesh_register_prov_callback(example_ble_mesh_provisioning_cb);
-    esp_ble_mesh_register_config_server_callback(example_ble_mesh_config_server_cb);
     esp_ble_mesh_register_custom_model_callback(example_ble_mesh_custom_model_cb);
+    esp_ble_mesh_register_config_server_callback(example_ble_mesh_config_server_cb);
 
     err = esp_ble_mesh_init(&provision, &composition);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to initialize mesh stack");
+    if (err) {
+        ESP_LOGE(TAG, "Failed to initialize mesh stack (err %d %s)", err, esp_err_to_name(err));
         return err;
     }
 
     err = esp_ble_mesh_node_prov_enable(ESP_BLE_MESH_PROV_ADV | ESP_BLE_MESH_PROV_GATT);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to enable mesh node");
+    if (err) {
+        ESP_LOGE(TAG, "Failed to enable mesh node (err %d %s)", err, esp_err_to_name(err));
         return err;
     }
 
-    board_led_operation(LED_G, LED_ON);
-
     ESP_LOGI(TAG, "BLE Mesh Node initialized");
 
-    return ESP_OK;
+    // Green means we are unprovisioned
+    board_led_operation(LED_G, prov_complete_true ? LED_OFF: LED_ON);
+
+    return err;
 }
 
 void app_main(void)
 {
-    esp_err_t err;
+    esp_err_t err = ESP_OK;
 
     ESP_LOGI(TAG, "Initializing...");
+
+    board_init();
 
     err = nvs_flash_init();
     if (err == ESP_ERR_NVS_NO_FREE_PAGES) {
@@ -233,11 +237,15 @@ void app_main(void)
     }
     ESP_ERROR_CHECK(err);
 
-    board_init();
-
     err = bluetooth_init();
     if (err) {
         ESP_LOGE(TAG, "esp32_bluetooth_init failed (err %d %s)", err, esp_err_to_name(err));
+        return;
+    }
+
+    /* Open nvs namespace for storing/restoring mesh example info */
+    err = ble_mesh_nvs_open(&NVS_HANDLE);
+    if (err) {
         return;
     }
 

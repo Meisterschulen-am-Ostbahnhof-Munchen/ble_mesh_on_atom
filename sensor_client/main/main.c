@@ -111,7 +111,7 @@ static void mesh_example_info_restore(void)
     bool exist = false;
 
     err = ble_mesh_nvs_restore(NVS_HANDLE, NVS_KEY, &store, sizeof(store), &exist);
-    if (err != ESP_OK) {
+    if (err) {
         return;
     }
 
@@ -153,8 +153,8 @@ static esp_err_t prov_complete(uint16_t node_index, const esp_ble_mesh_octet16_t
 
     sprintf(name, "%s%02x", "NODE-", node_index);
     err = esp_ble_mesh_provisioner_set_node_name(node_index, name);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to set node name");
+    if (err) {
+        ESP_LOGE(TAG, "Failed to set node name (err %d %s)", err, esp_err_to_name(err));
         return ESP_FAIL;
     }
 
@@ -167,8 +167,8 @@ static esp_err_t prov_complete(uint16_t node_index, const esp_ble_mesh_octet16_t
     example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_COMPOSITION_DATA_GET);
     get.comp_data_get.page = COMP_DATA_PAGE_0;
     err = esp_ble_mesh_config_client_get_state(&common, &get);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to send Config Composition Data Get");
+    if (err) {
+        ESP_LOGE(TAG, "Failed to send Config Composition Data Get (err %d %s)", err, esp_err_to_name(err));
         return ESP_FAIL;
     }
 
@@ -201,8 +201,8 @@ static void recv_unprov_adv_pkt(uint8_t dev_uuid[ESP_BLE_MESH_OCTET16_LEN], uint
              device with ADD_DEV_START_PROV_NOW_FLAG set. */
     err = esp_ble_mesh_provisioner_add_unprov_dev(&add_dev,
             ADD_DEV_RM_AFTER_PROV_FLAG | ADD_DEV_START_PROV_NOW_FLAG | ADD_DEV_FLUSHABLE_DEV_FLAG);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to start provisioning device");
+    if (err) {
+        ESP_LOGE(TAG, "Failed to start provisioning device (err %d %s)", err, esp_err_to_name(err));
     }
 }
 
@@ -260,8 +260,8 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
             prov_key.app_idx = param->provisioner_add_app_key_comp.app_idx;
             esp_err_t err = esp_ble_mesh_provisioner_bind_app_key_to_local_model(PROV_OWN_ADDR, prov_key.app_idx,
                                 ESP_BLE_MESH_MODEL_ID_SENSOR_CLI, ESP_BLE_MESH_CID_NVAL);
-            if (err != ESP_OK) {
-                ESP_LOGE(TAG, "Failed to bind AppKey to sensor client");
+            if (err) {
+                ESP_LOGE(TAG, "Failed to bind AppKey to sensor client (err %d %s)", err, esp_err_to_name(err));
             }
         }
         break;
@@ -348,8 +348,8 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
             err = esp_ble_mesh_provisioner_store_node_comp_data(param->params->ctx.addr,
                 param->status_cb.comp_data_status.composition_data->data,
                 param->status_cb.comp_data_status.composition_data->len);
-            if (err != ESP_OK) {
-                ESP_LOGE(TAG, "Failed to store node composition data");
+            if (err) {
+                ESP_LOGE(TAG, "Failed to store node composition data (err %d %s)", err, esp_err_to_name(err));
                 break;
             }
 
@@ -358,8 +358,8 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
             set.app_key_add.app_idx = prov_key.app_idx;
             memcpy(set.app_key_add.app_key, prov_key.app_key, ESP_BLE_MESH_OCTET16_LEN);
             err = esp_ble_mesh_config_client_set_state(&common, &set);
-            if (err != ESP_OK) {
-                ESP_LOGE(TAG, "Failed to send Config AppKey Add");
+            if (err) {
+                ESP_LOGE(TAG, "Failed to send Config AppKey Add (err %d %s)", err, esp_err_to_name(err));
             }
         }
         break;
@@ -371,8 +371,8 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
             set.model_app_bind.model_id = ESP_BLE_MESH_MODEL_ID_SENSOR_SRV;
             set.model_app_bind.company_id = ESP_BLE_MESH_CID_NVAL;
             err = esp_ble_mesh_config_client_set_state(&common, &set);
-            if (err != ESP_OK) {
-                ESP_LOGE(TAG, "Failed to send Config Model App Bind");
+            if (err) {
+                ESP_LOGE(TAG, "Failed to send Config Model App Bind (err %d %s)", err, esp_err_to_name(err));
                 return;
             }
             wait_model_id = ESP_BLE_MESH_MODEL_ID_SENSOR_SRV;
@@ -387,7 +387,7 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
                 set.model_app_bind.company_id = ESP_BLE_MESH_CID_NVAL;
                 err = esp_ble_mesh_config_client_set_state(&common, &set);
                 if (err) {
-                    ESP_LOGE(TAG, "Failed to send Config Model App Bind");
+                    ESP_LOGE(TAG, "Failed to send Config Model App Bind (err %d %s)", err, esp_err_to_name(err));
                     return;
                 }
                 wait_model_id = ESP_BLE_MESH_MODEL_ID_SENSOR_SETUP_SRV;
@@ -411,8 +411,8 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
             example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_COMPOSITION_DATA_GET);
             get.comp_data_get.page = COMP_DATA_PAGE_0;
             err = esp_ble_mesh_config_client_get_state(&common, &get);
-            if (err != ESP_OK) {
-                ESP_LOGE(TAG, "Failed to send Config Composition Data Get");
+            if (err) {
+                ESP_LOGE(TAG, "Failed to send Config Composition Data Get (err %d %s)", err, esp_err_to_name(err));
             }
             break;
         }
@@ -422,8 +422,8 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
             set.app_key_add.app_idx = prov_key.app_idx;
             memcpy(set.app_key_add.app_key, prov_key.app_key, ESP_BLE_MESH_OCTET16_LEN);
             err = esp_ble_mesh_config_client_set_state(&common, &set);
-            if (err != ESP_OK) {
-                ESP_LOGE(TAG, "Failed to send Config AppKey Add");
+            if (err) {
+                ESP_LOGE(TAG, "Failed to send Config AppKey Add (err %d %s)", err, esp_err_to_name(err));
             }
             break;
         case ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND:
@@ -433,8 +433,8 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
             set.model_app_bind.model_id = wait_model_id;
             set.model_app_bind.company_id = wait_cid;
             err = esp_ble_mesh_config_client_set_state(&common, &set);
-            if (err != ESP_OK) {
-                ESP_LOGE(TAG, "Failed to send Config Model App Bind");
+            if (err) {
+                ESP_LOGE(TAG, "Failed to send Config Model App Bind (err %d %s)", err, esp_err_to_name(err));
             }
             break;
         default:
@@ -476,8 +476,8 @@ void example_ble_mesh_send_sensor_message(uint32_t opcode)
     }
 
     err = esp_ble_mesh_sensor_client_get_state(&common, &get);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to send sensor message 0x%04x", opcode);
+    if (err) {
+        ESP_LOGE(TAG, "Failed to send sensor message 0x%04x (err %d %s)", opcode, err, esp_err_to_name(err));
     }
 }
 
@@ -679,32 +679,32 @@ static esp_err_t ble_mesh_init(void)
     esp_ble_mesh_register_sensor_client_callback(example_ble_mesh_sensor_client_cb);
 
     err = esp_ble_mesh_init(&provision, &composition);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to initialize mesh stack");
+    if (err) {
+        ESP_LOGE(TAG, "Failed to initialize mesh stack (err %d %s)", err, esp_err_to_name(err));
         return err;
     }
 
     err = esp_ble_mesh_provisioner_set_dev_uuid_match(match, sizeof(match), 0x0, false);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to set matching device uuid");
+    if (err) {
+        ESP_LOGE(TAG, "Failed to set matching device uuid (err %d %s)", err, esp_err_to_name(err));
         return err;
     }
 
     err = esp_ble_mesh_provisioner_prov_enable(ESP_BLE_MESH_PROV_ADV | ESP_BLE_MESH_PROV_GATT);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to enable mesh provisioner");
+    if (err) {
+        ESP_LOGE(TAG, "Failed to enable mesh provisioner (err %d %s)", err, esp_err_to_name(err));
         return err;
     }
 
     err = esp_ble_mesh_provisioner_add_local_app_key(prov_key.app_key, prov_key.net_idx, prov_key.app_idx);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to add local AppKey");
+    if (err) {
+        ESP_LOGE(TAG, "Failed to add local AppKey" (err %d %s)", err, esp_err_to_name(err));
         return err;
     }
 
     ESP_LOGI(TAG, "BLE Mesh sensor client initialized");
 
-    return ESP_OK;
+    return err;
 }
 
 void app_main(void)
@@ -713,6 +713,8 @@ void app_main(void)
 
     ESP_LOGI(TAG, "Initializing...");
 
+    board_init();
+
     err = nvs_flash_init();
     if (err == ESP_ERR_NVS_NO_FREE_PAGES) {
         ESP_ERROR_CHECK(nvs_flash_erase());
@@ -720,10 +722,8 @@ void app_main(void)
     }
     ESP_ERROR_CHECK(err);
 
-    board_init();
-
     err = bluetooth_init();
-    if (err != ESP_OK) {
+    if (err) {
         ESP_LOGE(TAG, "esp32_bluetooth_init failed (err %d %s)", err, esp_err_to_name(err));
         return;
     }
@@ -738,7 +738,7 @@ void app_main(void)
 
     /* Initialize the Bluetooth Mesh Subsystem */
     err = ble_mesh_init();
-    if (err != ESP_OK) {
+    if (err) {
         ESP_LOGE(TAG, "Bluetooth mesh init failed (err %d %s)", err, esp_err_to_name(err));
     }
 }
