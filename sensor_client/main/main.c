@@ -41,9 +41,18 @@
 #define COMP_DATA_1_OCTET(msg, offset)      (msg[offset])
 #define COMP_DATA_2_OCTET(msg, offset)      (msg[offset + 1] << 8 | msg[offset])
 
-static uint8_t  dev_uuid[ESP_BLE_MESH_OCTET16_LEN];
-static uint16_t server_address = ESP_BLE_MESH_ADDR_UNASSIGNED;
-static uint16_t sensor_prop_id;
+static uint8_t dev_uuid[ESP_BLE_MESH_OCTET16_LEN];
+
+static struct example_info_store {
+    uint16_t server_addr;   /* Vendor server unicast address */
+    uint16_t vnd_tid;       /* TID contained in the vendor message */
+} store = {
+    .server_addr = ESP_BLE_MESH_ADDR_UNASSIGNED,
+    .vnd_tid = 0,
+};
+
+static nvs_handle_t NVS_HANDLE;
+static const char * NVS_KEY = "sensor_client";
 
 static struct esp_ble_mesh_key {
     uint16_t net_idx;
@@ -89,6 +98,26 @@ static esp_ble_mesh_prov_t provision = {
     .prov_start_address = 0x0005,
 };
 
+static void mesh_example_info_store(void)
+{
+    ble_mesh_nvs_store(NVS_HANDLE, NVS_KEY, &store, sizeof(store));
+}
+
+static void mesh_example_info_restore(void)
+{
+    esp_err_t err = ESP_OK;
+    bool exist = false;
+
+    err = ble_mesh_nvs_restore(NVS_HANDLE, NVS_KEY, &store, sizeof(store), &exist);
+    if (err != ESP_OK) {
+        return;
+    }
+
+    if (exist) {
+        ESP_LOGI(TAG, "Restore, server_addr 0x%04x, vnd_tid 0x%04x", store.server_addr, store.vnd_tid);
+    }
+}
+
 static void example_ble_mesh_set_msg_common(esp_ble_mesh_client_common_param_t *common,
                                             esp_ble_mesh_node_t *node,
                                             esp_ble_mesh_model_t *model, uint32_t opcode)
@@ -117,7 +146,8 @@ static esp_err_t prov_complete(uint16_t node_index, const esp_ble_mesh_octet16_t
         node_index, primary_addr, element_num, net_idx);
     ESP_LOG_BUFFER_HEX("uuid", uuid, ESP_BLE_MESH_OCTET16_LEN);
 
-    server_address = primary_addr;
+    store.server_addr = primary_addr;
+    mesh_example_info_store(); /* Store proper mesh example info */
 
     sprintf(name, "%s%02x", "NODE-", node_index);
     err = esp_ble_mesh_provisioner_set_node_name(node_index, name);
@@ -180,6 +210,7 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
     switch (event) {
     case ESP_BLE_MESH_PROV_REGISTER_COMP_EVT:
         ESP_LOGI(TAG, "ESP_BLE_MESH_PROV_REGISTER_COMP_EVT, err_code %d", param->prov_register_comp.err_code);
+        mesh_example_info_restore(); /* Restore proper mesh example info */
         break;
     case ESP_BLE_MESH_PROVISIONER_PROV_ENABLE_COMP_EVT:
         ESP_LOGI(TAG, "ESP_BLE_MESH_PROVISIONER_PROV_ENABLE_COMP_EVT, err_code %d", param->provisioner_prov_enable_comp.err_code);
@@ -243,10 +274,6 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
     }
 }
 
-void example_ble_mesh_send_gen_onoff_set(void)
-{
-	//dummy
-}
 
 static void example_ble_mesh_parse_node_comp_data(const uint8_t *data, uint16_t length)
 {
@@ -451,6 +478,12 @@ void example_ble_mesh_send_sensor_message(uint32_t opcode)
         ESP_LOGE(TAG, "Failed to send sensor message 0x%04x", opcode);
     }
 }
+
+void example_ble_mesh_send_gen_onoff_set(void)
+{
+	//dummy
+}
+
 
 void example_ble_mesh_send_vendor_message(bool resend)
 {

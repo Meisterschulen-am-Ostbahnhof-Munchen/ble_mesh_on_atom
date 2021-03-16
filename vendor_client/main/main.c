@@ -202,7 +202,7 @@ static void recv_unprov_adv_pkt(uint8_t dev_uuid[ESP_BLE_MESH_OCTET16_LEN], uint
                                 uint8_t adv_type, esp_ble_mesh_prov_bearer_t bearer)
 {
     esp_ble_mesh_unprov_dev_add_t add_dev = {0};
-    esp_err_t err;
+    esp_err_t err = ESP_OK;
 
     /* Due to the API esp_ble_mesh_provisioner_set_dev_uuid_match, Provisioner will only
      * use this callback to report the devices, whose device UUID starts with 0xdd & 0xdd,
