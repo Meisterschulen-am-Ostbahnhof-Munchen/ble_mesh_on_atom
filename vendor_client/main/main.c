@@ -23,9 +23,9 @@
 #include "ble_mesh_example_nvs.h"
 #include "board.h"
 
-#define TAG "EXAMPLE"
+static const char *TAG = "vendor_client_example";
 
-#define CID_ESP             0x02E5
+#define CID_ESP     0x02E5
 
 #define PROV_OWN_ADDR       0x0001
 

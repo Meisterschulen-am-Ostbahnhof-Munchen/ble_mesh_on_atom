@@ -22,9 +22,10 @@
 
 
 #include "ble_mesh_example_init.h"
+#include "ble_mesh_example_nvs.h"
 #include "board.h"
 
-static const char *TAG = "EXAMPLE";
+static const char *TAG = "sensor_server_example";
 
 #define CID_ESP     0x02E5
 
@@ -48,7 +49,7 @@ static int8_t outdoor_temp = 60;    /* Outdoor temperature is 30 Degrees Celsius
 
 
 static nvs_handle_t NVS_HANDLE;
-static const char * NVS_KEY = "sensor_server";
+//static const char * NVS_KEY = "sensor_server";
 
 static uint8_t dev_uuid[ESP_BLE_MESH_OCTET16_LEN] = { 0x32, 0x10 };
 
