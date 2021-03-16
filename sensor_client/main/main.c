@@ -728,6 +728,12 @@ void app_main(void)
         return;
     }
 
+    /* Open nvs namespace for storing/restoring mesh example info */
+    err = ble_mesh_nvs_open(&NVS_HANDLE);
+    if (err) {
+        return;
+    }
+
     ble_mesh_get_dev_uuid(dev_uuid);
 
     /* Initialize the Bluetooth Mesh Subsystem */
