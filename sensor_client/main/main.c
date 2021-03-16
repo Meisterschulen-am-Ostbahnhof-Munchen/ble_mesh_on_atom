@@ -132,8 +132,8 @@ static void example_ble_mesh_set_msg_common(esp_ble_mesh_client_common_param_t *
 {
     common->opcode = opcode;
     common->model = model;
-    common->ctx.net_idx = prov_key.net_idx;
-    common->ctx.app_idx = prov_key.app_idx;
+    common->ctx.net_idx = store.net_idx;
+    common->ctx.app_idx = store.app_idx;
     common->ctx.addr = 0xFFFF;   /* to all nodes */
     common->ctx.send_ttl = MSG_SEND_TTL;
     common->ctx.send_rel = MSG_SEND_REL;
@@ -305,7 +305,6 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
     esp_ble_mesh_client_common_param_t common = {0};
     esp_ble_mesh_cfg_client_set_state_t set = {0};
     static uint16_t wait_model_id, wait_cid;
-    esp_ble_mesh_node_t *node = NULL;
     esp_err_t err = ESP_OK;
 
     ESP_LOGI(TAG, "Config client, event %u, addr 0x%04x, opcode 0x%04x",
@@ -316,11 +315,6 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
         return;
     }
 
-    node = esp_ble_mesh_provisioner_get_node_with_addr(param->params->ctx.addr);
-    if (!node) {
-        ESP_LOGE(TAG, "Node 0x%04x not exists", param->params->ctx.addr);
-        return;
-    }
 
     switch (event) {
     case ESP_BLE_MESH_CFG_CLIENT_GET_STATE_EVT:
@@ -337,7 +331,7 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
                 break;
             }
 
-            example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_APP_KEY_ADD);
+            example_ble_mesh_set_msg_common(&common, config_client.model, ESP_BLE_MESH_MODEL_OP_APP_KEY_ADD);
             set.app_key_add.net_idx = prov_key.net_idx;
             set.app_key_add.app_idx = prov_key.app_idx;
             memcpy(set.app_key_add.app_key, prov_key.app_key, ESP_BLE_MESH_OCTET16_LEN);
@@ -349,8 +343,8 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
         break;
     case ESP_BLE_MESH_CFG_CLIENT_SET_STATE_EVT:
         if (param->params->opcode == ESP_BLE_MESH_MODEL_OP_APP_KEY_ADD) {
-            example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND);
-            set.model_app_bind.element_addr = node->unicast_addr;
+            example_ble_mesh_set_msg_common(&common, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND);
+            set.model_app_bind.element_addr = 0xFFFF;   /* to all nodes */
             set.model_app_bind.model_app_idx = prov_key.app_idx;
             set.model_app_bind.model_id = ESP_BLE_MESH_MODEL_ID_SENSOR_SRV;
             set.model_app_bind.company_id = ESP_BLE_MESH_CID_NVAL;
@@ -364,8 +358,8 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
         } else if (param->params->opcode == ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND) {
             if (param->status_cb.model_app_status.model_id == ESP_BLE_MESH_MODEL_ID_SENSOR_SRV &&
                 param->status_cb.model_app_status.company_id == ESP_BLE_MESH_CID_NVAL) {
-                example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND);
-                set.model_app_bind.element_addr = node->unicast_addr;
+                example_ble_mesh_set_msg_common(&common, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND);
+                set.model_app_bind.element_addr = 0xFFFF;   /* to all nodes */
                 set.model_app_bind.model_app_idx = prov_key.app_idx;
                 set.model_app_bind.model_id = ESP_BLE_MESH_MODEL_ID_SENSOR_SETUP_SRV;
                 set.model_app_bind.company_id = ESP_BLE_MESH_CID_NVAL;
@@ -392,7 +386,7 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
         switch (param->params->opcode) {
         case ESP_BLE_MESH_MODEL_OP_COMPOSITION_DATA_GET: {
             esp_ble_mesh_cfg_client_get_state_t get = {0};
-            example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_COMPOSITION_DATA_GET);
+            example_ble_mesh_set_msg_common(&common, config_client.model, ESP_BLE_MESH_MODEL_OP_COMPOSITION_DATA_GET);
             get.comp_data_get.page = COMP_DATA_PAGE_0;
             err = esp_ble_mesh_config_client_get_state(&common, &get);
             if (err) {
@@ -401,7 +395,7 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
             break;
         }
         case ESP_BLE_MESH_MODEL_OP_APP_KEY_ADD:
-            example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_APP_KEY_ADD);
+            example_ble_mesh_set_msg_common(&common, config_client.model, ESP_BLE_MESH_MODEL_OP_APP_KEY_ADD);
             set.app_key_add.net_idx = prov_key.net_idx;
             set.app_key_add.app_idx = prov_key.app_idx;
             memcpy(set.app_key_add.app_key, prov_key.app_key, ESP_BLE_MESH_OCTET16_LEN);
@@ -411,8 +405,8 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
             }
             break;
         case ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND:
-            example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND);
-            set.model_app_bind.element_addr = node->unicast_addr;
+            example_ble_mesh_set_msg_common(&common, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND);
+            set.model_app_bind.element_addr = 0xFFFF;   /* to all nodes */
             set.model_app_bind.model_app_idx = prov_key.app_idx;
             set.model_app_bind.model_id = wait_model_id;
             set.model_app_bind.company_id = wait_cid;
@@ -539,11 +533,6 @@ static void example_ble_mesh_sensor_client_cb(esp_ble_mesh_sensor_client_cb_even
             if (param->status_cb.descriptor_status.descriptor->len) {
                 ESP_LOG_BUFFER_HEX("Sensor Descriptor", param->status_cb.descriptor_status.descriptor->data,
                     param->status_cb.descriptor_status.descriptor->len);
-                /* If running with sensor server example, sensor client can get two Sensor Property IDs.
-                 * Currently we use the first Sensor Property ID for the following demonstration.
-                 */
-                store.sensor_prop_id = param->status_cb.descriptor_status.descriptor->data[1] << 8 |
-                                 param->status_cb.descriptor_status.descriptor->data[0];
             }
             break;
         case ESP_BLE_MESH_MODEL_OP_SENSOR_CADENCE_GET:
