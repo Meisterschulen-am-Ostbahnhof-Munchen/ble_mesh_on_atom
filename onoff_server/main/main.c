@@ -307,13 +307,13 @@ static esp_err_t ble_mesh_init(void)
 
     err = esp_ble_mesh_init(&provision, &composition);
     if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to initialize mesh stack (err %d)", err);
+        ESP_LOGE(TAG, "Failed to initialize mesh stack (err %d %s)", err, esp_err_to_name(err));
         return err;
     }
 
     err = esp_ble_mesh_node_prov_enable(ESP_BLE_MESH_PROV_ADV | ESP_BLE_MESH_PROV_GATT);
     if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to enable mesh node (err %d)", err);
+        ESP_LOGE(TAG, "Failed to enable mesh node (err %d %s)", err, esp_err_to_name(err));
         return err;
     }
 
@@ -342,7 +342,7 @@ void app_main(void)
 
     err = bluetooth_init();
     if (err) {
-        ESP_LOGE(TAG, "esp32_bluetooth_init failed (err %d)", err);
+        ESP_LOGE(TAG, "esp32_bluetooth_init failed (err %d %s)", err, esp_err_to_name(err));
         return;
     }
 
@@ -351,6 +351,6 @@ void app_main(void)
     /* Initialize the Bluetooth Mesh Subsystem */
     err = ble_mesh_init();
     if (err) {
-        ESP_LOGE(TAG, "Bluetooth mesh init failed (err %d)", err);
+        ESP_LOGE(TAG, "Bluetooth mesh init failed (err %d %s)", err, esp_err_to_name(err));
     }
 }

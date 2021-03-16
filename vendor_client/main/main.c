@@ -586,7 +586,7 @@ void app_main(void)
 
     err = bluetooth_init();
     if (err != ESP_OK) {
-        ESP_LOGE(TAG, "esp32_bluetooth_init failed (err %d)", err);
+        ESP_LOGE(TAG, "esp32_bluetooth_init failed (err %d %s)", err, esp_err_to_name(err));
         return;
     }
 
@@ -601,6 +601,6 @@ void app_main(void)
     /* Initialize the Bluetooth Mesh Subsystem */
     err = ble_mesh_init();
     if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Bluetooth mesh init failed (err %d)", err);
+        ESP_LOGE(TAG, "Bluetooth mesh init failed (err %d %s)", err, esp_err_to_name(err));
     }
 }
