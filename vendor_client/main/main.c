@@ -336,6 +336,10 @@ static void example_ble_mesh_parse_node_comp_data(const uint8_t *data, uint16_t 
     ESP_LOGI(TAG, "*********************** Composition Data End ***********************");
 }
 
+
+
+
+
 static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t event,
                                               esp_ble_mesh_cfg_client_cb_param_t *param)
 {
@@ -445,6 +449,16 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
         ESP_LOGE(TAG, "Invalid config client event %u", event);
         break;
     }
+}
+
+void example_ble_mesh_send_gen_onoff_set(void)
+{
+	//dummy
+}
+
+void example_ble_mesh_send_sensor_message(uint32_t opcode)
+{
+	//dummy
 }
 
 void example_ble_mesh_send_vendor_message(bool resend)
