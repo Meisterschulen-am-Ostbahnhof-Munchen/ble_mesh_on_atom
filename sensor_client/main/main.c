@@ -34,7 +34,7 @@ static bool prov_complete_true = false;
 
 #define MSG_SEND_TTL        3
 #define MSG_SEND_REL        false
-#define MSG_TIMEOUT         0
+#define MSG_TIMEOUT         0     /* 0 indicates that timeout value from menuconfig will be used */
 #define MSG_ROLE            ROLE_PROVISIONER
 
 #define COMP_DATA_PAGE_0    0x00

@@ -31,6 +31,8 @@ static bool prov_complete_true = false;
 
 #define MSG_SEND_TTL        3
 #define MSG_SEND_REL        false
+#define MSG_TIMEOUT         0     /* 0 indicates that timeout value from menuconfig will be used */
+#define MSG_ROLE            ROLE_NODE
 static uint8_t dev_uuid[16] = { 0xdd, 0xdd };
 
 static struct example_info_store {
@@ -125,8 +127,8 @@ static void example_ble_mesh_set_msg_common(esp_ble_mesh_client_common_param_t *
     common->ctx.addr = 0xFFFF;   /* to all nodes */
     common->ctx.send_ttl = MSG_SEND_TTL;
     common->ctx.send_rel = MSG_SEND_REL;
-    common->msg_timeout = 0;     /* 0 indicates that timeout value from menuconfig will be used */
-    common->msg_role = ROLE_NODE;
+    common->msg_timeout = MSG_TIMEOUT;
+    common->msg_role = MSG_ROLE;
 }
 
 static void prov_complete(uint16_t net_idx, uint16_t addr, uint8_t flags, uint32_t iv_index)
