@@ -29,6 +29,8 @@ static bool prov_complete_true = false;
 
 #define CID_ESP     0x02E5
 
+#define MSG_SEND_TTL        3
+#define MSG_SEND_REL        false
 static uint8_t dev_uuid[16] = { 0xdd, 0xdd };
 
 static struct example_info_store {
@@ -114,16 +116,15 @@ static void mesh_example_info_restore(void)
 }
 
 static void example_ble_mesh_set_msg_common(esp_ble_mesh_client_common_param_t *common,
-                                            esp_ble_mesh_node_t *node,
                                             esp_ble_mesh_model_t *model, uint32_t opcode)
 {
-    common->opcode = ESP_BLE_MESH_MODEL_OP_GEN_ONOFF_SET_UNACK;
-    common->model = onoff_client.model;
+    common->opcode = opcode;
+    common->model = model;
     common->ctx.net_idx = store.net_idx;
     common->ctx.app_idx = store.app_idx;
     common->ctx.addr = 0xFFFF;   /* to all nodes */
-    common->ctx.send_ttl = 3;
-    common->ctx.send_rel = false;
+    common->ctx.send_ttl = MSG_SEND_TTL;
+    common->ctx.send_rel = MSG_SEND_REL;
     common->msg_timeout = 0;     /* 0 indicates that timeout value from menuconfig will be used */
     common->msg_role = ROLE_NODE;
 }
@@ -187,7 +188,10 @@ void example_ble_mesh_send_gen_onoff_set(void)
     esp_err_t err = ESP_OK;
 
 
-    example_ble_mesh_set_msg_common(&common, node, sensor_client.model, opcode);
+    uint32_t opcode = ESP_BLE_MESH_MODEL_OP_GEN_ONOFF_SET_UNACK;
+
+
+    example_ble_mesh_set_msg_common(&common, onoff_client.model, opcode);
 
     set.onoff_set.op_en = false;
     set.onoff_set.onoff = store.onoff;

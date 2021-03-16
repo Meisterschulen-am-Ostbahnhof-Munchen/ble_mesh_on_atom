@@ -128,14 +128,13 @@ static void mesh_example_info_restore(void)
 }
 
 static void example_ble_mesh_set_msg_common(esp_ble_mesh_client_common_param_t *common,
-                                            esp_ble_mesh_node_t *node,
                                             esp_ble_mesh_model_t *model, uint32_t opcode)
 {
     common->opcode = opcode;
     common->model = model;
     common->ctx.net_idx = prov_key.net_idx;
     common->ctx.app_idx = prov_key.app_idx;
-    common->ctx.addr = node->unicast_addr;
+    common->ctx.addr = 0xFFFF;   /* to all nodes */
     common->ctx.send_ttl = MSG_SEND_TTL;
     common->ctx.send_rel = MSG_SEND_REL;
     common->msg_timeout = MSG_TIMEOUT;
@@ -439,13 +438,7 @@ void example_ble_mesh_send_sensor_message(uint32_t opcode)
     esp_ble_mesh_node_t *node = NULL;
     esp_err_t err = ESP_OK;
 
-    node = esp_ble_mesh_provisioner_get_node_with_addr(store.server_addr);
-    if (node == NULL) {
-        ESP_LOGE(TAG, "Node 0x%04x not exists", store.server_addr);
-        return;
-    }
-
-    example_ble_mesh_set_msg_common(&common, node, sensor_client.model, opcode);
+    example_ble_mesh_set_msg_common(&common, sensor_client.model, opcode);
     switch (opcode) {
     case ESP_BLE_MESH_MODEL_OP_SENSOR_CADENCE_GET:
         get.cadence_get.property_id = store.sensor_prop_id;
