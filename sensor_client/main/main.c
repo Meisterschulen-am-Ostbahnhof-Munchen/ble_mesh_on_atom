@@ -26,6 +26,8 @@
 
 static const char *TAG = "sensor_client_example";
 
+static bool prov_complete_true = false;
+
 #define CID_ESP     0x02E5
 
 #define PROV_OWN_ADDR       0x0001
@@ -46,11 +48,15 @@ static const char *TAG = "sensor_client_example";
 static uint8_t dev_uuid[ESP_BLE_MESH_OCTET16_LEN];
 
 static struct example_info_store {
-    uint16_t server_addr;   /* Sensor server unicast address */
-    uint16_t sensor_prop_id;    
-} store = {
-    .server_addr = ESP_BLE_MESH_ADDR_UNASSIGNED,
-    .sensor_prop_id = 0,
+    uint16_t net_idx;   /* NetKey Index */
+    uint16_t app_idx;   /* AppKey Index */
+    uint8_t  onoff;     /* Remote OnOff */
+    uint8_t  tid;       /* Message TID */
+} __attribute__((packed)) store = {
+    .net_idx = ESP_BLE_MESH_KEY_UNUSED,
+    .app_idx = ESP_BLE_MESH_KEY_UNUSED,
+    .onoff = LED_OFF,
+    .tid = 0x0,
 };
 
 static nvs_handle_t NVS_HANDLE;
@@ -116,7 +122,8 @@ static void mesh_example_info_restore(void)
     }
 
     if (exist) {
-        ESP_LOGI(TAG, "Restore, server_addr 0x%04x, sensor_prop_id 0x%04x", store.server_addr, store.sensor_prop_id);
+        ESP_LOGI(TAG, "Restore, net_idx 0x%04x, app_idx 0x%04x, onoff %u, tid 0x%02x",
+            store.net_idx, store.app_idx, store.onoff, store.tid);
     }
 }
 
@@ -135,44 +142,22 @@ static void example_ble_mesh_set_msg_common(esp_ble_mesh_client_common_param_t *
     common->msg_role = MSG_ROLE;
 }
 
-static esp_err_t prov_complete(uint16_t node_index, const esp_ble_mesh_octet16_t uuid,
-                               uint16_t primary_addr, uint8_t element_num, uint16_t net_idx)
+static void prov_complete(uint16_t net_idx, uint16_t addr, uint8_t flags, uint32_t iv_index)
 {
-    esp_ble_mesh_client_common_param_t common = {0};
-    esp_ble_mesh_cfg_client_get_state_t get = {0};
-    esp_ble_mesh_node_t *node = NULL;
-    char name[11] = {'\0'};
-    esp_err_t err = ESP_OK;
-
-    ESP_LOGI(TAG, "node_index %u, primary_addr 0x%04x, element_num %u, net_idx 0x%03x",
-        node_index, primary_addr, element_num, net_idx);
-    ESP_LOG_BUFFER_HEX("uuid", uuid, ESP_BLE_MESH_OCTET16_LEN);
-
-    store.server_addr = primary_addr;
-    mesh_example_info_store(); /* Store proper mesh example info */
-
-    sprintf(name, "%s%02x", "NODE-", node_index);
-    err = esp_ble_mesh_provisioner_set_node_name(node_index, name);
-    if (err) {
-        ESP_LOGE(TAG, "Failed to set node name (err %d %s)", err, esp_err_to_name(err));
-        return ESP_FAIL;
-    }
-
-    node = esp_ble_mesh_provisioner_get_node_with_addr(primary_addr);
-    if (node == NULL) {
-        ESP_LOGE(TAG, "Failed to get node 0x%04x info", primary_addr);
-        return ESP_FAIL;
-    }
-
-    example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_COMPOSITION_DATA_GET);
-    get.comp_data_get.page = COMP_DATA_PAGE_0;
-    err = esp_ble_mesh_config_client_get_state(&common, &get);
-    if (err) {
-        ESP_LOGE(TAG, "Failed to send Config Composition Data Get (err %d %s)", err, esp_err_to_name(err));
-        return ESP_FAIL;
-    }
-
-    return ESP_OK;
+    ESP_LOGI(TAG, "net_idx: 0x%04x, addr: 0x%04x", net_idx, addr);
+    ESP_LOGI(TAG, "flags: 0x%02x, iv_index: 0x%08x", flags, iv_index);
+    board_led_operation(LED_G, LED_OFF);
+    prov_complete_true = true;
+    store.net_idx = net_idx;
+    /* mesh_example_info_store() shall not be invoked here, because if the device
+     * is restarted and goes into a provisioned state, then the following events
+     * will come:
+     * 1st: ESP_BLE_MESH_NODE_PROV_COMPLETE_EVT
+     * 2nd: ESP_BLE_MESH_PROV_REGISTER_COMP_EVT
+     * So the store.net_idx will be updated here, and if we store the mesh example
+     * info here, the wrong app_idx (initialized with 0xFFFF) will be stored in nvs
+     * just before restoring it.
+     */
 }
 
 static void recv_unprov_adv_pkt(uint8_t dev_uuid[ESP_BLE_MESH_OCTET16_LEN], uint8_t addr[BD_ADDR_LEN],
@@ -235,9 +220,9 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
             param->provisioner_prov_link_close.bearer == ESP_BLE_MESH_PROV_ADV ? "PB-ADV" : "PB-GATT", param->provisioner_prov_link_close.reason);
         break;
     case ESP_BLE_MESH_PROVISIONER_PROV_COMPLETE_EVT:
-        prov_complete(param->provisioner_prov_complete.node_idx, param->provisioner_prov_complete.device_uuid,
-                      param->provisioner_prov_complete.unicast_addr, param->provisioner_prov_complete.element_num,
-                      param->provisioner_prov_complete.netkey_idx);
+        ESP_LOGI(TAG, "ESP_BLE_MESH_PROVISIONER_PROV_COMPLETE_EVT");
+        prov_complete(param->node_prov_complete.net_idx, param->node_prov_complete.addr,
+            param->node_prov_complete.flags, param->node_prov_complete.iv_index);
         break;
     case ESP_BLE_MESH_PROVISIONER_ADD_UNPROV_DEV_COMP_EVT:
         ESP_LOGI(TAG, "ESP_BLE_MESH_PROVISIONER_ADD_UNPROV_DEV_COMP_EVT, err_code %d", param->provisioner_add_unprov_dev_comp.err_code);

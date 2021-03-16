@@ -19,7 +19,6 @@
 #include "esp_ble_mesh_config_model_api.h"
 #include "esp_ble_mesh_generic_model_api.h"
 
-
 #include "ble_mesh_example_init.h"
 #include "ble_mesh_example_nvs.h"
 #include "board.h"
@@ -114,6 +113,21 @@ static void mesh_example_info_restore(void)
     }
 }
 
+static void example_ble_mesh_set_msg_common(esp_ble_mesh_client_common_param_t *common,
+                                            esp_ble_mesh_node_t *node,
+                                            esp_ble_mesh_model_t *model, uint32_t opcode)
+{
+    common->opcode = ESP_BLE_MESH_MODEL_OP_GEN_ONOFF_SET_UNACK;
+    common->model = onoff_client.model;
+    common->ctx.net_idx = store.net_idx;
+    common->ctx.app_idx = store.app_idx;
+    common->ctx.addr = 0xFFFF;   /* to all nodes */
+    common->ctx.send_ttl = 3;
+    common->ctx.send_rel = false;
+    common->msg_timeout = 0;     /* 0 indicates that timeout value from menuconfig will be used */
+    common->msg_role = ROLE_NODE;
+}
+
 static void prov_complete(uint16_t net_idx, uint16_t addr, uint8_t flags, uint32_t iv_index)
 {
     ESP_LOGI(TAG, "net_idx: 0x%04x, addr: 0x%04x", net_idx, addr);
@@ -172,15 +186,8 @@ void example_ble_mesh_send_gen_onoff_set(void)
     esp_ble_mesh_client_common_param_t common = {0};
     esp_err_t err = ESP_OK;
 
-    common.opcode = ESP_BLE_MESH_MODEL_OP_GEN_ONOFF_SET_UNACK;
-    common.model = onoff_client.model;
-    common.ctx.net_idx = store.net_idx;
-    common.ctx.app_idx = store.app_idx;
-    common.ctx.addr = 0xFFFF;   /* to all nodes */
-    common.ctx.send_ttl = 3;
-    common.ctx.send_rel = false;
-    common.msg_timeout = 0;     /* 0 indicates that timeout value from menuconfig will be used */
-    common.msg_role = ROLE_NODE;
+
+    example_ble_mesh_set_msg_common(&common, node, sensor_client.model, opcode);
 
     set.onoff_set.op_en = false;
     set.onoff_set.onoff = store.onoff;
