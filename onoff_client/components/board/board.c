@@ -32,6 +32,7 @@ static led_strip_t *strip = (led_strip_t *)0;
 
 extern void example_ble_mesh_send_gen_onoff_set(void);
 extern void example_ble_mesh_send_sensor_message(uint32_t opcode);
+extern void example_ble_mesh_send_vendor_message(bool resend);
 
 static uint32_t send_opcode[] = {
     [0] = ESP_BLE_MESH_MODEL_OP_SENSOR_DESCRIPTOR_GET,
@@ -132,6 +133,7 @@ static void button_tap_cb(void* arg)
 
     example_ble_mesh_send_gen_onoff_set();
     example_ble_mesh_send_sensor_message(send_opcode[press_count++]);
+    example_ble_mesh_send_vendor_message(false);
     press_count = press_count % ARRAY_SIZE(send_opcode);
 }
 
