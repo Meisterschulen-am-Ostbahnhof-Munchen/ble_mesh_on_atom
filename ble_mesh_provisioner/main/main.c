@@ -596,25 +596,25 @@ static esp_err_t ble_mesh_init(void)
 
     err = esp_ble_mesh_init(&provision, &composition);
     if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to initialize mesh stack (err %d)", err);
+        ESP_LOGE(TAG, "Failed to initialize mesh stack ((err %d %s)", err, esp_err_to_name(err));
         return err;
     }
 
     err = esp_ble_mesh_provisioner_set_dev_uuid_match(match, sizeof(match), 0x0, false);
     if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to set matching device uuid (err %d)", err);
+        ESP_LOGE(TAG, "Failed to set matching device uuid (err %d %s)", err, esp_err_to_name(err));
         return err;
     }
 
     err = esp_ble_mesh_provisioner_prov_enable(ESP_BLE_MESH_PROV_ADV | ESP_BLE_MESH_PROV_GATT);
     if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to enable mesh provisioner (err %d)", err);
+        ESP_LOGE(TAG, "Failed to enable mesh provisioner (err %d %s)", err, esp_err_to_name(err));
         return err;
     }
 
     err = esp_ble_mesh_provisioner_add_local_app_key(prov_key.app_key, prov_key.net_idx, prov_key.app_idx);
     if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to add local AppKey (err %d)", err);
+        ESP_LOGE(TAG, "Failed to add local AppKey (err %d %s)", err, esp_err_to_name(err));
         return err;
     }
 
@@ -625,7 +625,7 @@ static esp_err_t ble_mesh_init(void)
 
 void app_main(void)
 {
-    esp_err_t err;
+    esp_err_t err = ESP_OK;
 
     ESP_LOGI(TAG, "Initializing...");
 
@@ -638,7 +638,7 @@ void app_main(void)
 
     err = bluetooth_init();
     if (err) {
-        ESP_LOGE(TAG, "esp32_bluetooth_init failed (err %d)", err);
+        ESP_LOGE(TAG, "esp32_bluetooth_init failed (err %d %s)", err, esp_err_to_name(err));
         return;
     }
 
@@ -647,6 +647,6 @@ void app_main(void)
     /* Initialize the Bluetooth Mesh Subsystem */
     err = ble_mesh_init();
     if (err) {
-        ESP_LOGE(TAG, "Bluetooth mesh init failed (err %d)", err);
+        ESP_LOGE(TAG, "Bluetooth mesh init failed (err %d %s)", err, esp_err_to_name(err));
     }
 }
