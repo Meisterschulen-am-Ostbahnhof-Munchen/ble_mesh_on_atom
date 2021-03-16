@@ -47,7 +47,7 @@ static int8_t outdoor_temp = 60;    /* Outdoor temperature is 30 Degrees Celsius
 #define SENSOR_MEASURE_PERIOD       ESP_BLE_MESH_SENSOR_NOT_APPL_MEASURE_PERIOD
 #define SENSOR_UPDATE_INTERVAL      ESP_BLE_MESH_SENSOR_NOT_APPL_UPDATE_INTERVAL
 
-
+static bool prov_complete_true = false;
 static nvs_handle_t NVS_HANDLE;
 //static const char * NVS_KEY = "sensor_server";
 
@@ -158,6 +158,7 @@ static void prov_complete(uint16_t net_idx, uint16_t addr, uint8_t flags, uint32
     ESP_LOGI(TAG, "net_idx 0x%03x, addr 0x%04x", net_idx, addr);
     ESP_LOGI(TAG, "flags 0x%02x, iv_index 0x%08x", flags, iv_index);
     board_led_operation(LED_G, LED_OFF);
+    prov_complete_true = true;
 
     /* Initialize the indoor and outdoor temperatures for each sensor.  */
     net_buf_simple_add_u8(&sensor_data_0, indoor_temp);
