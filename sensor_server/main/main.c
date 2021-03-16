@@ -621,11 +621,12 @@ static esp_err_t ble_mesh_init(void)
         return err;
     }
 
+	//this is Wrong. it might have loaded Provisioning from NVS, so we do not want to switch on Green in any case.
     board_led_operation(LED_G, LED_ON);
 
     ESP_LOGI(TAG, "BLE Mesh sensor server initialized");
 
-    return ESP_OK;
+    return err;
 }
 
 void app_main(void)
