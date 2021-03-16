@@ -22,9 +22,10 @@
 #include "esp_ble_mesh_local_data_operation_api.h"
 
 #include "ble_mesh_example_init.h"
+#include "ble_mesh_example_nvs.h"
 #include "board.h"
 
-static const char *TAG = "EXAMPLE";
+static const char *TAG = "onoff_server_example";
 
 #define CID_ESP     0x02E5
 

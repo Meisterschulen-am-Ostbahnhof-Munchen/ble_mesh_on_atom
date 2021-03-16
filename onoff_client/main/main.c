@@ -19,11 +19,12 @@
 #include "esp_ble_mesh_config_model_api.h"
 #include "esp_ble_mesh_generic_model_api.h"
 
-#include "board.h"
+
 #include "ble_mesh_example_init.h"
 #include "ble_mesh_example_nvs.h"
+#include "board.h"
 
-static const char *TAG = "EXAMPLE";
+static const char *TAG = "onoff_client_example";
 
 static bool prov_complete_true = false;
 
