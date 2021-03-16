@@ -11,6 +11,7 @@
 
 #include "esp_log.h"
 #include "nvs_flash.h"
+#include "esp_bt.h"
 
 #include "esp_ble_mesh_defs.h"
 #include "esp_ble_mesh_common_api.h"
@@ -20,6 +21,7 @@
 #include "esp_ble_mesh_sensor_model_api.h"
 
 #include "ble_mesh_example_init.h"
+#include "ble_mesh_example_nvs.h"
 #include "board.h"
 
 #define TAG "EXAMPLE"
@@ -44,11 +46,11 @@
 static uint8_t dev_uuid[ESP_BLE_MESH_OCTET16_LEN];
 
 static struct example_info_store {
-    uint16_t server_addr;   /* Vendor server unicast address */
-    uint16_t vnd_tid;       /* TID contained in the vendor message */
+    uint16_t server_addr;   /* Sensor server unicast address */
+    uint16_t sensor_prop_id;    
 } store = {
     .server_addr = ESP_BLE_MESH_ADDR_UNASSIGNED,
-    .vnd_tid = 0,
+    .sensor_prop_id = 0,
 };
 
 static nvs_handle_t NVS_HANDLE;
@@ -114,7 +116,7 @@ static void mesh_example_info_restore(void)
     }
 
     if (exist) {
-        ESP_LOGI(TAG, "Restore, server_addr 0x%04x, vnd_tid 0x%04x", store.server_addr, store.vnd_tid);
+        ESP_LOGI(TAG, "Restore, server_addr 0x%04x, sensor_prop_id 0x%04x", store.server_addr, store.sensor_prop_id);
     }
 }
 
@@ -452,22 +454,22 @@ void example_ble_mesh_send_sensor_message(uint32_t opcode)
     esp_ble_mesh_node_t *node = NULL;
     esp_err_t err = ESP_OK;
 
-    node = esp_ble_mesh_provisioner_get_node_with_addr(server_address);
+    node = esp_ble_mesh_provisioner_get_node_with_addr(store.server_addr);
     if (node == NULL) {
-        ESP_LOGE(TAG, "Node 0x%04x not exists", server_address);
+        ESP_LOGE(TAG, "Node 0x%04x not exists", store.server_addr);
         return;
     }
 
     example_ble_mesh_set_msg_common(&common, node, sensor_client.model, opcode);
     switch (opcode) {
     case ESP_BLE_MESH_MODEL_OP_SENSOR_CADENCE_GET:
-        get.cadence_get.property_id = sensor_prop_id;
+        get.cadence_get.property_id = store.sensor_prop_id;
         break;
     case ESP_BLE_MESH_MODEL_OP_SENSOR_SETTINGS_GET:
-        get.settings_get.sensor_property_id = sensor_prop_id;
+        get.settings_get.sensor_property_id = store.sensor_prop_id;
         break;
     case ESP_BLE_MESH_MODEL_OP_SENSOR_SERIES_GET:
-        get.series_get.property_id = sensor_prop_id;
+        get.series_get.property_id = store.sensor_prop_id;
         break;
     default:
         break;
@@ -562,7 +564,7 @@ static void example_ble_mesh_sensor_client_cb(esp_ble_mesh_sensor_client_cb_even
                 /* If running with sensor server example, sensor client can get two Sensor Property IDs.
                  * Currently we use the first Sensor Property ID for the following demonstration.
                  */
-                sensor_prop_id = param->status_cb.descriptor_status.descriptor->data[1] << 8 |
+                store.sensor_prop_id = param->status_cb.descriptor_status.descriptor->data[1] << 8 |
                                  param->status_cb.descriptor_status.descriptor->data[0];
             }
             break;
