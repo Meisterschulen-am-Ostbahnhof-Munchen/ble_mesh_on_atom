@@ -1,5 +1,2 @@
-set(srcs "led_strip_main.c"
-    "board.c")
-
-idf_component_register(SRCS "${srcs}"
+idf_component_register(SRCS "main.c"
                     INCLUDE_DIRS  ".")
