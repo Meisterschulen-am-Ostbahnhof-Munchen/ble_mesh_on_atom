@@ -14,8 +14,8 @@
 #include "nvs_flash.h"
 
 #include "esp_ble_mesh_common_api.h"
-#include "esp_ble_mesh_provisioning_api.h"
 #include "esp_ble_mesh_networking_api.h"
+#include "esp_ble_mesh_provisioning_api.h"
 #include "esp_ble_mesh_config_model_api.h"
 #include "esp_ble_mesh_generic_model_api.h"
 
