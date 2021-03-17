@@ -450,7 +450,7 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
             example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_APP_KEY_ADD);
             set_state.app_key_add.net_idx = prov_key.net_idx;
             set_state.app_key_add.app_idx = prov_key.app_idx;
-            memcpy(set_state.app_key_add.app_key, prov_key.app_key, 16);
+            memcpy(set_state.app_key_add.app_key, prov_key.app_key, ESP_BLE_MESH_OCTET16_LEN);
             err = esp_ble_mesh_config_client_set_state(&common, &set_state);
             if (err) {
                 ESP_LOGE(TAG, "%s: Config AppKey Add failed", __func__);
