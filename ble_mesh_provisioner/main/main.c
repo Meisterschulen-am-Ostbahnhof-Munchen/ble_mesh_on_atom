@@ -21,7 +21,7 @@
 
 #include "ble_mesh_example_init.h"
 
-#define TAG "EXAMPLE"
+static const char *TAG = "ble_mesh_provisioner_example";
 
 #define LED_OFF             0x0
 #define LED_ON              0x1
@@ -32,7 +32,7 @@
 
 #define MSG_SEND_TTL        3
 #define MSG_SEND_REL        false
-#define MSG_TIMEOUT         0
+#define MSG_TIMEOUT         0     /* 0 indicates that timeout value from menuconfig will be used */
 #define MSG_ROLE            ROLE_PROVISIONER
 
 #define COMP_DATA_PAGE_0    0x00
@@ -277,10 +277,10 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
 {
     switch (event) {
     case ESP_BLE_MESH_PROVISIONER_PROV_ENABLE_COMP_EVT:
-        ESP_LOGI(TAG, "ESP_BLE_MESH_PROVISIONER_PROV_ENABLE_COMP_EVT, err_code %d", param->provisioner_prov_enable_comp.err_code);
+        ESP_LOGI(TAG, "ESP_BLE_MESH_PROVISIONER_PROV_ENABLE_COMP_EVT, err_code %d %s", param->provisioner_prov_enable_comp.err_code, esp_err_to_name(param->provisioner_prov_enable_comp.err_code));
         break;
     case ESP_BLE_MESH_PROVISIONER_PROV_DISABLE_COMP_EVT:
-        ESP_LOGI(TAG, "ESP_BLE_MESH_PROVISIONER_PROV_DISABLE_COMP_EVT, err_code %d", param->provisioner_prov_disable_comp.err_code);
+        ESP_LOGI(TAG, "ESP_BLE_MESH_PROVISIONER_PROV_DISABLE_COMP_EVT, err_code %d %s", param->provisioner_prov_disable_comp.err_code, esp_err_to_name(param->provisioner_prov_disable_comp.err_code));
         break;
     case ESP_BLE_MESH_PROVISIONER_RECV_UNPROV_ADV_PKT_EVT:
         ESP_LOGI(TAG, "ESP_BLE_MESH_PROVISIONER_RECV_UNPROV_ADV_PKT_EVT");
@@ -300,13 +300,13 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
                       param->provisioner_prov_complete.netkey_idx);
         break;
     case ESP_BLE_MESH_PROVISIONER_ADD_UNPROV_DEV_COMP_EVT:
-        ESP_LOGI(TAG, "ESP_BLE_MESH_PROVISIONER_ADD_UNPROV_DEV_COMP_EVT, err_code %d", param->provisioner_add_unprov_dev_comp.err_code);
+        ESP_LOGI(TAG, "ESP_BLE_MESH_PROVISIONER_ADD_UNPROV_DEV_COMP_EVT, err_code %d %s", param->provisioner_add_unprov_dev_comp.err_code, esp_err_to_name(param->provisioner_add_unprov_dev_comp.err_code));
         break;
     case ESP_BLE_MESH_PROVISIONER_SET_DEV_UUID_MATCH_COMP_EVT:
-        ESP_LOGI(TAG, "ESP_BLE_MESH_PROVISIONER_SET_DEV_UUID_MATCH_COMP_EVT, err_code %d", param->provisioner_set_dev_uuid_match_comp.err_code);
+        ESP_LOGI(TAG, "ESP_BLE_MESH_PROVISIONER_SET_DEV_UUID_MATCH_COMP_EVT, err_code %d %s", param->provisioner_set_dev_uuid_match_comp.err_code, esp_err_to_name(param->provisioner_set_dev_uuid_match_comp.err_code));
         break;
     case ESP_BLE_MESH_PROVISIONER_SET_NODE_NAME_COMP_EVT: {
-        ESP_LOGI(TAG, "ESP_BLE_MESH_PROVISIONER_SET_NODE_NAME_COMP_EVT, err_code %d", param->provisioner_set_node_name_comp.err_code);
+        ESP_LOGI(TAG, "ESP_BLE_MESH_PROVISIONER_SET_NODE_NAME_COMP_EVT, err_code %d %s", param->provisioner_set_node_name_comp.err_code, esp_err_to_name(param->provisioner_set_node_name_comp.err_code));
         if (param->provisioner_set_node_name_comp.err_code == ESP_OK) {
             const char *name = NULL;
             name = esp_ble_mesh_provisioner_get_node_name(param->provisioner_set_node_name_comp.node_index);
@@ -319,7 +319,7 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
         break;
     }
     case ESP_BLE_MESH_PROVISIONER_ADD_LOCAL_APP_KEY_COMP_EVT: {
-        ESP_LOGI(TAG, "ESP_BLE_MESH_PROVISIONER_ADD_LOCAL_APP_KEY_COMP_EVT, err_code %d", param->provisioner_add_app_key_comp.err_code);
+        ESP_LOGI(TAG, "ESP_BLE_MESH_PROVISIONER_ADD_LOCAL_APP_KEY_COMP_EVT, err_code %d %s", param->provisioner_add_app_key_comp.err_code, esp_err_to_name(param->provisioner_add_app_key_comp.err_code));
         if (param->provisioner_add_app_key_comp.err_code == ESP_OK) {
             esp_err_t err = 0;
             prov_key.app_idx = param->provisioner_add_app_key_comp.app_idx;
@@ -333,7 +333,7 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
         break;
     }
     case ESP_BLE_MESH_PROVISIONER_BIND_APP_KEY_TO_MODEL_COMP_EVT:
-        ESP_LOGI(TAG, "ESP_BLE_MESH_PROVISIONER_BIND_APP_KEY_TO_MODEL_COMP_EVT, err_code %d", param->provisioner_bind_app_key_to_model_comp.err_code);
+        ESP_LOGI(TAG, "ESP_BLE_MESH_PROVISIONER_BIND_APP_KEY_TO_MODEL_COMP_EVT, err_code %d %s", param->provisioner_bind_app_key_to_model_comp.err_code, esp_err_to_name(param->provisioner_bind_app_key_to_model_comp.err_code));
         break;
     default:
         break;
