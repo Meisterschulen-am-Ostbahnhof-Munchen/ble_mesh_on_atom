@@ -34,16 +34,15 @@ typedef struct {
 ble_mesh_client_get_set_state_t configuration_client_model_operation;
 
 void ble_mesh_register_configuration_client_model_command(void);
-void ble_mesh_configuration_client_model_cb(esp_ble_mesh_cfg_client_cb_event_t event,
-        esp_ble_mesh_cfg_client_cb_param_t *param);
+
 
 void ble_mesh_register_configuration_client_model(void)
 {
     ble_mesh_register_configuration_client_model_command();
 }
 
-void ble_mesh_configuration_client_model_cb(esp_ble_mesh_cfg_client_cb_event_t event,
-        esp_ble_mesh_cfg_client_cb_param_t *param)
+static void ble_mesh_configuration_client_model_cb(esp_ble_mesh_cfg_client_cb_event_t event,
+                                                   esp_ble_mesh_cfg_client_cb_param_t *param)
 {
     uint32_t opcode;
     ESP_LOGD(TAG, "enter %s, event = %x\n, error_code = %x\n", __func__, event, param->error_code);

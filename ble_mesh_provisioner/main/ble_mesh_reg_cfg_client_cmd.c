@@ -38,7 +38,7 @@ extern esp_ble_mesh_key_t prov_key;
 
 
 static void ble_mesh_configuration_client_model_cb(esp_ble_mesh_cfg_client_cb_event_t event,
-                                              esp_ble_mesh_cfg_client_cb_param_t *param)
+                                                   esp_ble_mesh_cfg_client_cb_param_t *param)
 {
     esp_ble_mesh_client_common_param_t common = {0};
     esp_ble_mesh_node_info_t *node = NULL;
