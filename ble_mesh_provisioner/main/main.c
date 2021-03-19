@@ -54,7 +54,6 @@ static struct esp_ble_mesh_key {
 } prov_key;
 
 static esp_ble_mesh_client_t config_client;
-static esp_ble_mesh_client_t onoff_client;
 
 static esp_ble_mesh_cfg_srv_t config_server = {
     .relay = ESP_BLE_MESH_RELAY_DISABLED,
@@ -250,12 +249,6 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
         if (param->provisioner_add_app_key_comp.err_code == ESP_OK) {
             esp_err_t err = 0;
             prov_key.app_idx = param->provisioner_add_app_key_comp.app_idx;
-            err = esp_ble_mesh_provisioner_bind_app_key_to_local_model(PROV_OWN_ADDR, prov_key.app_idx,
-                    ESP_BLE_MESH_MODEL_ID_GEN_ONOFF_CLI, ESP_BLE_MESH_CID_NVAL);
-            if (err != ESP_OK) {
-                ESP_LOGE(TAG, "Provisioner bind local model appkey failed");
-                return;
-            }
         }
         break;
     }
@@ -384,13 +377,7 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
             break;
         }
         case ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND: {
-            esp_ble_mesh_generic_client_get_state_t get_state = {0};
-            example_ble_mesh_set_msg_common(&common, node->unicast_addr, onoff_client.model, ESP_BLE_MESH_MODEL_OP_GEN_ONOFF_GET);
-            err = esp_ble_mesh_generic_client_get_state(&common, &get_state);
-            if (err) {
-                ESP_LOGE(TAG, "%s: Generic OnOff Get failed", __func__);
-                return;
-            }
+
             break;
         }
         default:
