@@ -20,11 +20,13 @@
 #include "esp_ble_mesh_generic_model_api.h"
 
 #include "ble_mesh_example_init.h"
+#include "ble_mesh_node_info.h"
+
+#include "main.h"
 
 static const char *TAG = "ble_mesh_provisioner_example";
 
-#define LED_OFF             0x0
-#define LED_ON              0x1
+
 
 #define CID_ESP             0x02E5
 
@@ -35,36 +37,22 @@ static const char *TAG = "ble_mesh_provisioner_example";
 #define MSG_TIMEOUT         0     /* 0 indicates that timeout value from menuconfig will be used */
 #define MSG_ROLE            ROLE_PROVISIONER
 
-#define COMP_DATA_PAGE_0    0x00
+
 
 #define APP_KEY_IDX         0x0000
 #define APP_KEY_OCTET       0x12
 
 static uint8_t dev_uuid[16];
 
-typedef struct {
-    uint8_t  uuid[16];
-    uint16_t unicast;
-    uint8_t  elem_num;
-    uint8_t  onoff;
-} esp_ble_mesh_node_info_t;
 
-static esp_ble_mesh_node_info_t nodes[CONFIG_BLE_MESH_MAX_PROV_NODES] = {
-    [0 ... (CONFIG_BLE_MESH_MAX_PROV_NODES - 1)] = {
-        .unicast = ESP_BLE_MESH_ADDR_UNASSIGNED,
-        .elem_num = 0,
-        .onoff = LED_OFF,
-    }
-};
 
-static struct esp_ble_mesh_key {
-    uint16_t net_idx;
-    uint16_t app_idx;
-    uint8_t  app_key[16];
-} prov_key;
 
-static esp_ble_mesh_client_t config_client;
-static esp_ble_mesh_client_t onoff_client;
+
+
+esp_ble_mesh_key_t prov_key;
+
+esp_ble_mesh_client_t config_client;
+esp_ble_mesh_client_t onoff_client;
 
 static esp_ble_mesh_cfg_srv_t config_server = {
     .relay = ESP_BLE_MESH_RELAY_DISABLED,
@@ -114,58 +102,8 @@ static esp_ble_mesh_prov_t provision = {
     .iv_index            = 0x00,
 };
 
-static esp_err_t example_ble_mesh_store_node_info(const uint8_t uuid[16], uint16_t unicast,
-                                                  uint8_t elem_num, uint8_t onoff_state)
-{
-    int i;
 
-    if (!uuid || !ESP_BLE_MESH_ADDR_IS_UNICAST(unicast)) {
-        return ESP_ERR_INVALID_ARG;
-    }
-
-    /* Judge if the device has been provisioned before */
-    for (i = 0; i < ARRAY_SIZE(nodes); i++) {
-        if (!memcmp(nodes[i].uuid, uuid, 16)) {
-            ESP_LOGW(TAG, "%s: reprovisioned device 0x%04x", __func__, unicast);
-            nodes[i].unicast = unicast;
-            nodes[i].elem_num = elem_num;
-            nodes[i].onoff = onoff_state;
-            return ESP_OK;
-        }
-    }
-
-    for (i = 0; i < ARRAY_SIZE(nodes); i++) {
-        if (nodes[i].unicast == ESP_BLE_MESH_ADDR_UNASSIGNED) {
-            memcpy(nodes[i].uuid, uuid, 16);
-            nodes[i].unicast = unicast;
-            nodes[i].elem_num = elem_num;
-            nodes[i].onoff = onoff_state;
-            return ESP_OK;
-        }
-    }
-
-    return ESP_FAIL;
-}
-
-static esp_ble_mesh_node_info_t *example_ble_mesh_get_node_info(uint16_t unicast)
-{
-    int i;
-
-    if (!ESP_BLE_MESH_ADDR_IS_UNICAST(unicast)) {
-        return NULL;
-    }
-
-    for (i = 0; i < ARRAY_SIZE(nodes); i++) {
-        if (nodes[i].unicast <= unicast &&
-                nodes[i].unicast + nodes[i].elem_num > unicast) {
-            return &nodes[i];
-        }
-    }
-
-    return NULL;
-}
-
-static esp_err_t example_ble_mesh_set_msg_common(esp_ble_mesh_client_common_param_t *common,
+esp_err_t example_ble_mesh_set_msg_common(esp_ble_mesh_client_common_param_t *common,
                                                  esp_ble_mesh_node_info_t *node,
                                                  esp_ble_mesh_model_t *model, uint32_t opcode)
 {
@@ -443,6 +381,12 @@ static void example_ble_mesh_generic_client_cb(esp_ble_mesh_generic_client_cb_ev
     }
 }
 
+
+
+extern void ble_mesh_register_config_client_callback(void);
+
+
+
 static esp_err_t ble_mesh_init(void)
 {
     uint8_t match[2] = {0xdd, 0xdd};
@@ -453,7 +397,7 @@ static esp_err_t ble_mesh_init(void)
     memset(prov_key.app_key, APP_KEY_OCTET, sizeof(prov_key.app_key));
 
     esp_ble_mesh_register_prov_callback(example_ble_mesh_provisioning_cb);
-    esp_ble_mesh_register_config_client_callback(ble_mesh_configuration_client_model_cb);
+        ble_mesh_register_config_client_callback();
     esp_ble_mesh_register_generic_client_callback(example_ble_mesh_generic_client_cb);
 
     err = esp_ble_mesh_init(&provision, &composition);

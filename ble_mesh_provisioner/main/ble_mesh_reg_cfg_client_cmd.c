@@ -1,9 +1,40 @@
-/*
- * ble_mesh_reg_cfg_client_cmd.c
- *
- *  Created on: 19.03.2021
- *      Author: mail
- */
+// Copyright 2017-2019 Espressif Systems (Shanghai) PTE LTD
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+
+#include <stdio.h>
+#include <string.h>
+
+#include "esp_log.h"
+#include "nvs_flash.h"
+
+#include "esp_ble_mesh_defs.h"
+#include "esp_ble_mesh_common_api.h"
+#include "esp_ble_mesh_provisioning_api.h"
+#include "esp_ble_mesh_networking_api.h"
+#include "esp_ble_mesh_config_model_api.h"
+#include "esp_ble_mesh_generic_model_api.h"
+
+#include "ble_mesh_node_info.h"
+#include "main.h"
+
+static const char *TAG = "ble_mesh_reg_cfg_client_cmd";
+
+
+extern esp_ble_mesh_client_t config_client;
+extern esp_ble_mesh_client_t onoff_client;
+extern esp_ble_mesh_key_t prov_key;
 
 
 static void ble_mesh_configuration_client_model_cb(esp_ble_mesh_cfg_client_cb_event_t event,
@@ -149,4 +180,9 @@ static void ble_mesh_configuration_client_model_cb(esp_ble_mesh_cfg_client_cb_ev
         ESP_LOGE(TAG, "Not a config client status message event");
         break;
     }
+}
+
+void ble_mesh_register_config_client_callback(void)
+{
+	esp_ble_mesh_register_config_client_callback(ble_mesh_configuration_client_model_cb);
 }
