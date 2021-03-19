@@ -192,6 +192,11 @@ static void ble_mesh_configuration_client_model_cb(esp_ble_mesh_cfg_client_cb_ev
 			}
 			break;
         case ESP_BLE_MESH_MODEL_OP_APP_KEY_ADD: {
+			if (param->status_cb.appkey_status.status == ESP_OK) {
+				ESP_LOGI(TAG, "CnfClient:AddAppkey,OK,%x,%x,%x", param->status_cb.appkey_status.net_idx, param->status_cb.appkey_status.app_idx, param->params->ctx.addr);
+			} else {
+				ESP_LOGI(TAG, "CnfClient:AddAppkey,Fail,%x", param->status_cb.appkey_status.status);
+			}
             esp_ble_mesh_cfg_client_set_state_t set_state = {0};
             example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND);
             set_state.model_app_bind.element_addr = node->unicast;
@@ -204,21 +209,21 @@ static void ble_mesh_configuration_client_model_cb(esp_ble_mesh_cfg_client_cb_ev
                 return;
             }
             break;
-		case ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND:
-		 {
-		            esp_ble_mesh_generic_client_get_state_t get_state = {0};
-		            example_ble_mesh_set_msg_common(&common, node, onoff_client.model, ESP_BLE_MESH_MODEL_OP_GEN_ONOFF_GET);
-		            err = esp_ble_mesh_generic_client_get_state(&common, &get_state);
-		            if (err) {
-		                ESP_LOGE(TAG, "%s: Generic OnOff Get failed", __func__);
-		                return;
-
+		case ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND: {
 			if (param->status_cb.model_app_status.status == ESP_OK) {
 				ESP_LOGI(TAG, "CnfClient:AppkeyBind,OK,%x,%x,%x", param->status_cb.model_app_status.app_idx, param->status_cb.model_app_status.model_id, param->params->ctx.addr);
 			} else {
 				ESP_LOGI(TAG, "CnfClient:AppkeyBind,Fail,%x", param->status_cb.model_app_status.status);
 			}
-		            }
+			esp_ble_mesh_generic_client_get_state_t get_state = {0};
+			example_ble_mesh_set_msg_common(&common, node, onoff_client.model, ESP_BLE_MESH_MODEL_OP_GEN_ONOFF_GET);
+			err = esp_ble_mesh_generic_client_get_state(&common, &get_state);
+			if (err) {
+				ESP_LOGE(TAG, "%s: Generic OnOff Get failed", __func__);
+				return;
+
+
+			}
 			break;
 		case ESP_BLE_MESH_MODEL_OP_FRIEND_SET:
 			ESP_LOGI(TAG, "CfgClient:friend: 0x%x", param->status_cb.friend_status.friend_state);
