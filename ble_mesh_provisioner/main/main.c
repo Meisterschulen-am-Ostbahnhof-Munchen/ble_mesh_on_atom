@@ -397,7 +397,7 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
             example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND);
             set_state.model_app_bind.element_addr = node->unicast;
             set_state.model_app_bind.model_app_idx = prov_key.app_idx;
-            set_state.model_app_bind.model_id = ESP_BLE_MESH_MODEL_ID_GEN_ONOFF_CLI;
+            set_state.model_app_bind.model_id = ESP_BLE_MESH_MODEL_ID_GEN_ONOFF_SRV;
             set_state.model_app_bind.company_id = ESP_BLE_MESH_CID_NVAL;
             err = esp_ble_mesh_config_client_set_state(&common, &set_state);
             if (err) {
@@ -463,7 +463,7 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
             example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND);
             set_state.model_app_bind.element_addr = node->unicast;
             set_state.model_app_bind.model_app_idx = prov_key.app_idx;
-            set_state.model_app_bind.model_id = ESP_BLE_MESH_MODEL_ID_GEN_ONOFF_CLI;
+            set_state.model_app_bind.model_id = ESP_BLE_MESH_MODEL_ID_GEN_ONOFF_SRV;
             set_state.model_app_bind.company_id = ESP_BLE_MESH_CID_NVAL;
             err = esp_ble_mesh_config_client_set_state(&common, &set_state);
             if (err) {
@@ -596,7 +596,7 @@ static esp_err_t ble_mesh_init(void)
 
     err = esp_ble_mesh_init(&provision, &composition);
     if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to initialize mesh stack ((err %d %s)", err, esp_err_to_name(err));
+        ESP_LOGE(TAG, "Failed to initialize mesh stack (err %d %s)", err, esp_err_to_name(err));
         return err;
     }
 
@@ -625,7 +625,7 @@ static esp_err_t ble_mesh_init(void)
 
 void app_main(void)
 {
-    esp_err_t err = ESP_OK;
+    esp_err_t err;
 
     ESP_LOGI(TAG, "Initializing...");
 
