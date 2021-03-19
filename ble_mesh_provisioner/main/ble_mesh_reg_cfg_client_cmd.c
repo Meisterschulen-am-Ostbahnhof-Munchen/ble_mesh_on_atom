@@ -80,10 +80,8 @@ static void ble_mesh_configuration_client_model_cb(esp_ble_mesh_cfg_client_cb_ev
 		case ESP_BLE_MESH_MODEL_OP_BEACON_GET:
 			ESP_LOGI(TAG, "CfgClient:beacon,0x%x", param->status_cb.beacon_status.beacon);
 			break;
-		case ESP_BLE_MESH_MODEL_OP_COMPOSITION_DATA_GET:
-			{
+		case ESP_BLE_MESH_MODEL_OP_COMPOSITION_DATA_GET: {
 			ESP_LOGI(TAG, "CfgClient:page,0x%x,len,0x%x", param->status_cb.comp_data_status.page, param->status_cb.comp_data_status.composition_data->len);
-
             ESP_LOGI(TAG, "composition data %s", bt_hex(param->status_cb.comp_data_status.composition_data->data,
                      param->status_cb.comp_data_status.composition_data->len));
             esp_ble_mesh_cfg_client_set_state_t set_state = {0};
