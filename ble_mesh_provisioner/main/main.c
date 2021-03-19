@@ -40,7 +40,10 @@ static const char *TAG = "ble_mesh_provisioner_example";
 #define APP_KEY_IDX         0x0000
 #define APP_KEY_OCTET       0x12
 
-static uint8_t dev_uuid[16];
+#define COMP_DATA_1_OCTET(msg, offset)      (msg[offset])
+#define COMP_DATA_2_OCTET(msg, offset)      (msg[offset + 1] << 8 | msg[offset])
+
+static uint8_t dev_uuid[ESP_BLE_MESH_OCTET16_LEN];
 
 typedef struct {
     uint8_t  uuid[16];
@@ -428,7 +431,7 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
             example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_APP_KEY_ADD);
             set_state.app_key_add.net_idx = prov_key.net_idx;
             set_state.app_key_add.app_idx = prov_key.app_idx;
-            memcpy(set.app_key_add.app_key, prov_key.app_key, ESP_BLE_MESH_OCTET16_LEN);
+            memcpy(set_state.app_key_add.app_key, prov_key.app_key, ESP_BLE_MESH_OCTET16_LEN);
             err = esp_ble_mesh_config_client_set_state(&common, &set_state);
             if (err) {
                 ESP_LOGE(TAG, "%s: Config AppKey Add failed", __func__);
