@@ -342,6 +342,45 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
     return;
 }
 
+
+static void example_ble_mesh_parse_node_comp_data(const uint8_t *data, uint16_t length)
+{
+    uint16_t cid, pid, vid, crpl, feat;
+    uint16_t loc, model_id, company_id;
+    uint8_t nums, numv;
+    uint16_t offset;
+    int i;
+
+    cid = COMP_DATA_2_OCTET(data, 0);
+    pid = COMP_DATA_2_OCTET(data, 2);
+    vid = COMP_DATA_2_OCTET(data, 4);
+    crpl = COMP_DATA_2_OCTET(data, 6);
+    feat = COMP_DATA_2_OCTET(data, 8);
+    offset = 10;
+
+    ESP_LOGI(TAG, "********************** Composition Data Start **********************");
+    ESP_LOGI(TAG, "* CID 0x%04x, PID 0x%04x, VID 0x%04x, CRPL 0x%04x, Features 0x%04x *", cid, pid, vid, crpl, feat);
+    for (; offset < length; ) {
+        loc = COMP_DATA_2_OCTET(data, offset);
+        nums = COMP_DATA_1_OCTET(data, offset + 2);
+        numv = COMP_DATA_1_OCTET(data, offset + 3);
+        offset += 4;
+        ESP_LOGI(TAG, "* Loc 0x%04x, NumS 0x%02x, NumV 0x%02x *", loc, nums, numv);
+        for (i = 0; i < nums; i++) {
+            model_id = COMP_DATA_2_OCTET(data, offset);
+            ESP_LOGI(TAG, "* SIG Model ID 0x%04x *", model_id);
+            offset += 2;
+        }
+        for (i = 0; i < numv; i++) {
+            company_id = COMP_DATA_2_OCTET(data, offset);
+            model_id = COMP_DATA_2_OCTET(data, offset + 2);
+            ESP_LOGI(TAG, "* Vendor Model ID 0x%04x, Company ID 0x%04x *", model_id, company_id);
+            offset += 4;
+        }
+    }
+    ESP_LOGI(TAG, "*********************** Composition Data End ***********************");
+}
+
 static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t event,
                                               esp_ble_mesh_cfg_client_cb_param_t *param)
 {
@@ -374,11 +413,22 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
         case ESP_BLE_MESH_MODEL_OP_COMPOSITION_DATA_GET: {
             ESP_LOGI(TAG, "composition data %s", bt_hex(param->status_cb.comp_data_status.composition_data->data,
                      param->status_cb.comp_data_status.composition_data->len));
+            ESP_LOG_BUFFER_HEX("Composition data", param->status_cb.comp_data_status.composition_data->data,
+                param->status_cb.comp_data_status.composition_data->len);
+            example_ble_mesh_parse_node_comp_data(param->status_cb.comp_data_status.composition_data->data,
+                param->status_cb.comp_data_status.composition_data->len);
+            err = esp_ble_mesh_provisioner_store_node_comp_data(param->params->ctx.addr,
+                param->status_cb.comp_data_status.composition_data->data,
+                param->status_cb.comp_data_status.composition_data->len);
+            if (err) {
+                ESP_LOGE(TAG, "Failed to store node composition data (err %d %s)", err, esp_err_to_name(err));
+                break;
+            }
             esp_ble_mesh_cfg_client_set_state_t set_state = {0};
             example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_APP_KEY_ADD);
             set_state.app_key_add.net_idx = prov_key.net_idx;
             set_state.app_key_add.app_idx = prov_key.app_idx;
-            memcpy(set_state.app_key_add.app_key, prov_key.app_key, 16);
+            memcpy(set.app_key_add.app_key, prov_key.app_key, ESP_BLE_MESH_OCTET16_LEN);
             err = esp_ble_mesh_config_client_set_state(&common, &set_state);
             if (err) {
                 ESP_LOGE(TAG, "%s: Config AppKey Add failed", __func__);
