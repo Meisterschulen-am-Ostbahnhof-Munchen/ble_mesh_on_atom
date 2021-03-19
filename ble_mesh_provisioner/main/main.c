@@ -347,12 +347,24 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
 {
     esp_ble_mesh_client_common_param_t common = {0};
     esp_ble_mesh_node_info_t *node = NULL;
-    uint32_t opcode;
-    uint16_t addr;
+
+
+
     int err;
 
-    opcode = param->params->opcode;
-    addr = param->params->ctx.addr;
+    const uint32_t opcode = param->params->opcode;
+    const uint16_t addr = param->params->ctx.addr;
+    const uint8_t  sig_model_count = param->params->model->element->sig_model_count;
+    const uint8_t  vnd_model_count =param->params->model->element->vnd_model_count;
+
+
+    ESP_LOGI(TAG, "sig_model_count %i", sig_model_count);
+
+
+    ESP_LOGI(TAG, "vnd_model_count %i", vnd_model_count);
+
+
+
 
     ESP_LOGI(TAG, "%s, error_code = 0x%02x, event = 0x%02x, addr: 0x%04x, opcode: 0x%04x",
              __func__, param->error_code, event, param->params->ctx.addr, opcode);
@@ -367,6 +379,9 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
         ESP_LOGE(TAG, "%s: Get node info failed", __func__);
         return;
     }
+
+
+
 
     switch (event) {
     case ESP_BLE_MESH_CFG_CLIENT_GET_STATE_EVT:
