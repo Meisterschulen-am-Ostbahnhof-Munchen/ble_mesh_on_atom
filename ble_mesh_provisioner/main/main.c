@@ -45,25 +45,12 @@ static const char *TAG = "ble_mesh_provisioner_example";
 
 static uint8_t dev_uuid[ESP_BLE_MESH_OCTET16_LEN];
 
-typedef struct {
-    uint8_t  uuid[16];
-    uint16_t unicast;
-    uint8_t  elem_num;
-    uint8_t  onoff;
-} esp_ble_mesh_node_info_t;
 
-static esp_ble_mesh_node_info_t nodes[CONFIG_BLE_MESH_MAX_PROV_NODES] = {
-    [0 ... (CONFIG_BLE_MESH_MAX_PROV_NODES - 1)] = {
-        .unicast = ESP_BLE_MESH_ADDR_UNASSIGNED,
-        .elem_num = 0,
-        .onoff = LED_OFF,
-    }
-};
 
 static struct esp_ble_mesh_key {
     uint16_t net_idx;
     uint16_t app_idx;
-    uint8_t  app_key[16];
+    uint8_t  app_key[ESP_BLE_MESH_OCTET16_LEN];
 } prov_key;
 
 static esp_ble_mesh_client_t config_client;
@@ -91,7 +78,6 @@ static esp_ble_mesh_cfg_srv_t config_server = {
 static esp_ble_mesh_model_t root_models[] = {
     ESP_BLE_MESH_MODEL_CFG_SRV(&config_server),
     ESP_BLE_MESH_MODEL_CFG_CLI(&config_client),
-    ESP_BLE_MESH_MODEL_GEN_ONOFF_CLI(NULL, &onoff_client),
 };
 
 static esp_ble_mesh_elem_t elements[] = {
@@ -117,62 +103,12 @@ static esp_ble_mesh_prov_t provision = {
     .iv_index            = 0x00,
 };
 
-static esp_err_t example_ble_mesh_store_node_info(const uint8_t uuid[16], uint16_t unicast,
-                                                  uint8_t elem_num, uint8_t onoff_state)
-{
-    int i;
-
-    if (!uuid || !ESP_BLE_MESH_ADDR_IS_UNICAST(unicast)) {
-        return ESP_ERR_INVALID_ARG;
-    }
-
-    /* Judge if the device has been provisioned before */
-    for (i = 0; i < ARRAY_SIZE(nodes); i++) {
-        if (!memcmp(nodes[i].uuid, uuid, 16)) {
-            ESP_LOGW(TAG, "%s: reprovisioned device 0x%04x", __func__, unicast);
-            nodes[i].unicast = unicast;
-            nodes[i].elem_num = elem_num;
-            nodes[i].onoff = onoff_state;
-            return ESP_OK;
-        }
-    }
-
-    for (i = 0; i < ARRAY_SIZE(nodes); i++) {
-        if (nodes[i].unicast == ESP_BLE_MESH_ADDR_UNASSIGNED) {
-            memcpy(nodes[i].uuid, uuid, 16);
-            nodes[i].unicast = unicast;
-            nodes[i].elem_num = elem_num;
-            nodes[i].onoff = onoff_state;
-            return ESP_OK;
-        }
-    }
-
-    return ESP_FAIL;
-}
-
-static esp_ble_mesh_node_info_t *example_ble_mesh_get_node_info(uint16_t unicast)
-{
-    int i;
-
-    if (!ESP_BLE_MESH_ADDR_IS_UNICAST(unicast)) {
-        return NULL;
-    }
-
-    for (i = 0; i < ARRAY_SIZE(nodes); i++) {
-        if (nodes[i].unicast <= unicast &&
-                nodes[i].unicast + nodes[i].elem_num > unicast) {
-            return &nodes[i];
-        }
-    }
-
-    return NULL;
-}
 
 static esp_err_t example_ble_mesh_set_msg_common(esp_ble_mesh_client_common_param_t *common,
-                                                 esp_ble_mesh_node_info_t *node,
+													uint16_t unicast_addr,
                                                  esp_ble_mesh_model_t *model, uint32_t opcode)
 {
-    if (!common || !node || !model) {
+    if (!common ||  !model) {
         return ESP_ERR_INVALID_ARG;
     }
 
@@ -180,7 +116,7 @@ static esp_err_t example_ble_mesh_set_msg_common(esp_ble_mesh_client_common_para
     common->model = model;
     common->ctx.net_idx = prov_key.net_idx;
     common->ctx.app_idx = prov_key.app_idx;
-    common->ctx.addr = node->unicast;
+    common->ctx.addr = unicast_addr;
     common->ctx.send_ttl = MSG_SEND_TTL;
     common->ctx.send_rel = MSG_SEND_REL;
     common->msg_timeout = MSG_TIMEOUT;
@@ -194,7 +130,6 @@ static esp_err_t prov_complete(int node_idx, const esp_ble_mesh_octet16_t uuid,
 {
     esp_ble_mesh_client_common_param_t common = {0};
     esp_ble_mesh_cfg_client_get_state_t get_state = {0};
-    esp_ble_mesh_node_info_t *node = NULL;
     char name[11] = {0};
     int err;
 
@@ -209,19 +144,8 @@ static esp_err_t prov_complete(int node_idx, const esp_ble_mesh_octet16_t uuid,
         return ESP_FAIL;
     }
 
-    err = example_ble_mesh_store_node_info(uuid, unicast, elem_num, LED_OFF);
-    if (err) {
-        ESP_LOGE(TAG, "%s: Store node info failed", __func__);
-        return ESP_FAIL;
-    }
 
-    node = example_ble_mesh_get_node_info(unicast);
-    if (!node) {
-        ESP_LOGE(TAG, "%s: Get node info failed", __func__);
-        return ESP_FAIL;
-    }
-
-    example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_COMPOSITION_DATA_GET);
+    example_ble_mesh_set_msg_common(&common, unicast, config_client.model, ESP_BLE_MESH_MODEL_OP_COMPOSITION_DATA_GET);
     get_state.comp_data_get.page = COMP_DATA_PAGE_0;
     err = esp_ble_mesh_config_client_get_state(&common, &get_state);
     if (err) {
@@ -388,7 +312,7 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
                                               esp_ble_mesh_cfg_client_cb_param_t *param)
 {
     esp_ble_mesh_client_common_param_t common = {0};
-    esp_ble_mesh_node_info_t *node = NULL;
+    esp_ble_mesh_node_t *node = NULL;
     uint32_t opcode;
     uint16_t addr;
     int err;
@@ -404,7 +328,7 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
         return;
     }
 
-    node = example_ble_mesh_get_node_info(addr);
+    node = esp_ble_mesh_provisioner_get_node_with_addr(addr);
     if (!node) {
         ESP_LOGE(TAG, "%s: Get node info failed", __func__);
         return;
@@ -428,7 +352,7 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
                 break;
             }
             esp_ble_mesh_cfg_client_set_state_t set_state = {0};
-            example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_APP_KEY_ADD);
+            example_ble_mesh_set_msg_common(&common, node->unicast_addr, config_client.model, ESP_BLE_MESH_MODEL_OP_APP_KEY_ADD);
             set_state.app_key_add.net_idx = prov_key.net_idx;
             set_state.app_key_add.app_idx = prov_key.app_idx;
             memcpy(set_state.app_key_add.app_key, prov_key.app_key, ESP_BLE_MESH_OCTET16_LEN);
@@ -447,8 +371,8 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
         switch (opcode) {
         case ESP_BLE_MESH_MODEL_OP_APP_KEY_ADD: {
             esp_ble_mesh_cfg_client_set_state_t set_state = {0};
-            example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND);
-            set_state.model_app_bind.element_addr = node->unicast;
+            example_ble_mesh_set_msg_common(&common, node->unicast_addr, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND);
+            set_state.model_app_bind.element_addr = node->unicast_addr;
             set_state.model_app_bind.model_app_idx = prov_key.app_idx;
             set_state.model_app_bind.model_id = ESP_BLE_MESH_MODEL_ID_GEN_ONOFF_SRV;
             set_state.model_app_bind.company_id = ESP_BLE_MESH_CID_NVAL;
@@ -461,7 +385,7 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
         }
         case ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND: {
             esp_ble_mesh_generic_client_get_state_t get_state = {0};
-            example_ble_mesh_set_msg_common(&common, node, onoff_client.model, ESP_BLE_MESH_MODEL_OP_GEN_ONOFF_GET);
+            example_ble_mesh_set_msg_common(&common, node->unicast_addr, onoff_client.model, ESP_BLE_MESH_MODEL_OP_GEN_ONOFF_GET);
             err = esp_ble_mesh_generic_client_get_state(&common, &get_state);
             if (err) {
                 ESP_LOGE(TAG, "%s: Generic OnOff Get failed", __func__);
@@ -489,7 +413,7 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
         switch (opcode) {
         case ESP_BLE_MESH_MODEL_OP_COMPOSITION_DATA_GET: {
             esp_ble_mesh_cfg_client_get_state_t get_state = {0};
-            example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_COMPOSITION_DATA_GET);
+            example_ble_mesh_set_msg_common(&common, node->unicast_addr, config_client.model, ESP_BLE_MESH_MODEL_OP_COMPOSITION_DATA_GET);
             get_state.comp_data_get.page = COMP_DATA_PAGE_0;
             err = esp_ble_mesh_config_client_get_state(&common, &get_state);
             if (err) {
@@ -500,7 +424,7 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
         }
         case ESP_BLE_MESH_MODEL_OP_APP_KEY_ADD: {
             esp_ble_mesh_cfg_client_set_state_t set_state = {0};
-            example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_APP_KEY_ADD);
+            example_ble_mesh_set_msg_common(&common, node->unicast_addr, config_client.model, ESP_BLE_MESH_MODEL_OP_APP_KEY_ADD);
             set_state.app_key_add.net_idx = prov_key.net_idx;
             set_state.app_key_add.app_idx = prov_key.app_idx;
             memcpy(set_state.app_key_add.app_key, prov_key.app_key, ESP_BLE_MESH_OCTET16_LEN);
@@ -513,8 +437,8 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
         }
         case ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND: {
             esp_ble_mesh_cfg_client_set_state_t set_state = {0};
-            example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND);
-            set_state.model_app_bind.element_addr = node->unicast;
+            example_ble_mesh_set_msg_common(&common, node->unicast_addr, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND);
+            set_state.model_app_bind.element_addr = node->unicast_addr;
             set_state.model_app_bind.model_app_idx = prov_key.app_idx;
             set_state.model_app_bind.model_id = ESP_BLE_MESH_MODEL_ID_GEN_ONOFF_SRV;
             set_state.model_app_bind.company_id = ESP_BLE_MESH_CID_NVAL;
@@ -535,104 +459,6 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
     }
 }
 
-static void example_ble_mesh_generic_client_cb(esp_ble_mesh_generic_client_cb_event_t event,
-                                               esp_ble_mesh_generic_client_cb_param_t *param)
-{
-    esp_ble_mesh_client_common_param_t common = {0};
-    esp_ble_mesh_node_info_t *node = NULL;
-    uint32_t opcode;
-    uint16_t addr;
-    int err;
-
-    opcode = param->params->opcode;
-    addr = param->params->ctx.addr;
-
-    ESP_LOGI(TAG, "%s, error_code = 0x%02x, event = 0x%02x, addr: 0x%04x, opcode: 0x%04x",
-             __func__, param->error_code, event, param->params->ctx.addr, opcode);
-
-    if (param->error_code) {
-        ESP_LOGE(TAG, "Send generic client message failed, opcode 0x%04x", opcode);
-        return;
-    }
-
-    node = example_ble_mesh_get_node_info(addr);
-    if (!node) {
-        ESP_LOGE(TAG, "%s: Get node info failed", __func__);
-        return;
-    }
-
-    switch (event) {
-    case ESP_BLE_MESH_GENERIC_CLIENT_GET_STATE_EVT:
-        switch (opcode) {
-        case ESP_BLE_MESH_MODEL_OP_GEN_ONOFF_GET: {
-            esp_ble_mesh_generic_client_set_state_t set_state = {0};
-            node->onoff = param->status_cb.onoff_status.present_onoff;
-            ESP_LOGI(TAG, "ESP_BLE_MESH_MODEL_OP_GEN_ONOFF_GET onoff: 0x%02x", node->onoff);
-            /* After Generic OnOff Status for Generic OnOff Get is received, Generic OnOff Set will be sent */
-            example_ble_mesh_set_msg_common(&common, node, onoff_client.model, ESP_BLE_MESH_MODEL_OP_GEN_ONOFF_SET);
-            set_state.onoff_set.op_en = false;
-            set_state.onoff_set.onoff = !node->onoff;
-            set_state.onoff_set.tid = 0;
-            err = esp_ble_mesh_generic_client_set_state(&common, &set_state);
-            if (err) {
-                ESP_LOGE(TAG, "%s: Generic OnOff Set failed", __func__);
-                return;
-            }
-            break;
-        }
-        default:
-            break;
-        }
-        break;
-    case ESP_BLE_MESH_GENERIC_CLIENT_SET_STATE_EVT:
-        switch (opcode) {
-        case ESP_BLE_MESH_MODEL_OP_GEN_ONOFF_SET:
-            node->onoff = param->status_cb.onoff_status.present_onoff;
-            ESP_LOGI(TAG, "ESP_BLE_MESH_MODEL_OP_GEN_ONOFF_SET onoff: 0x%02x", node->onoff);
-            break;
-        default:
-            break;
-        }
-        break;
-    case ESP_BLE_MESH_GENERIC_CLIENT_PUBLISH_EVT:
-        break;
-    case ESP_BLE_MESH_GENERIC_CLIENT_TIMEOUT_EVT:
-        /* If failed to receive the responses, these messages will be resend */
-        switch (opcode) {
-        case ESP_BLE_MESH_MODEL_OP_GEN_ONOFF_GET: {
-            esp_ble_mesh_generic_client_get_state_t get_state = {0};
-            example_ble_mesh_set_msg_common(&common, node, onoff_client.model, ESP_BLE_MESH_MODEL_OP_GEN_ONOFF_GET);
-            err = esp_ble_mesh_generic_client_get_state(&common, &get_state);
-            if (err) {
-                ESP_LOGE(TAG, "%s: Generic OnOff Get failed", __func__);
-                return;
-            }
-            break;
-        }
-        case ESP_BLE_MESH_MODEL_OP_GEN_ONOFF_SET: {
-            esp_ble_mesh_generic_client_set_state_t set_state = {0};
-            node->onoff = param->status_cb.onoff_status.present_onoff;
-            ESP_LOGI(TAG, "ESP_BLE_MESH_MODEL_OP_GEN_ONOFF_GET onoff: 0x%02x", node->onoff);
-            example_ble_mesh_set_msg_common(&common, node, onoff_client.model, ESP_BLE_MESH_MODEL_OP_GEN_ONOFF_SET);
-            set_state.onoff_set.op_en = false;
-            set_state.onoff_set.onoff = !node->onoff;
-            set_state.onoff_set.tid = 0;
-            err = esp_ble_mesh_generic_client_set_state(&common, &set_state);
-            if (err) {
-                ESP_LOGE(TAG, "%s: Generic OnOff Set failed", __func__);
-                return;
-            }
-            break;
-        }
-        default:
-            break;
-        }
-        break;
-    default:
-        ESP_LOGE(TAG, "Not a generic client status message event");
-        break;
-    }
-}
 
 static esp_err_t ble_mesh_init(void)
 {
@@ -645,7 +471,6 @@ static esp_err_t ble_mesh_init(void)
 
     esp_ble_mesh_register_prov_callback(example_ble_mesh_provisioning_cb);
     esp_ble_mesh_register_config_client_callback(example_ble_mesh_config_client_cb);
-    esp_ble_mesh_register_generic_client_callback(example_ble_mesh_generic_client_cb);
 
     err = esp_ble_mesh_init(&provision, &composition);
     if (err != ESP_OK) {
