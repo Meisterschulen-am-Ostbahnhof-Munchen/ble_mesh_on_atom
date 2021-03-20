@@ -387,13 +387,13 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
 
                 for (int j = 0; j < devices[param->params->ctx.addr].sig_model_count; j++) {
 
-                        ESP_LOGE(TAG, "%s: SIG model nr. %i (model_id 0x%04x)",
+                        ESP_LOGI(TAG, "%s: SIG model nr. %i (model_id 0x%04x)",
                                  __func__,j, devices[param->params->ctx.addr].sig_models[j].model_id);
                     }
 
 
                 for (int j = 0; j < devices[param->params->ctx.addr].vnd_model_count; j++) {
-                        ESP_LOGE(TAG, "%s: Vendor model  nr. %i (model_id 0x%04x, cid: 0x%04x)",
+                        ESP_LOGI(TAG, "%s: Vendor model  nr. %i (model_id 0x%04x, cid: 0x%04x)",
                                  __func__,j, devices[param->params->ctx.addr].vnd_models[j].vnd.model_id, devices[param->params->ctx.addr].vnd_models[j].vnd.company_id);
 
                 }
@@ -422,7 +422,7 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
             example_ble_mesh_set_msg_common(&common, node->unicast_addr, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND);
             set_state.model_app_bind.element_addr = node->unicast_addr;
             set_state.model_app_bind.model_app_idx = prov_key.app_idx;
-            set_state.model_app_bind.model_id = ESP_BLE_MESH_MODEL_ID_GEN_ONOFF_SRV;
+            set_state.model_app_bind.model_id = devices[param->params->ctx.addr].sig_models[1].model_id;
             set_state.model_app_bind.company_id = ESP_BLE_MESH_CID_NVAL;
             err = esp_ble_mesh_config_client_set_state(&common, &set_state);
             if (err) {
@@ -482,7 +482,7 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
             example_ble_mesh_set_msg_common(&common, node->unicast_addr, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND);
             set_state.model_app_bind.element_addr = node->unicast_addr;
             set_state.model_app_bind.model_app_idx = prov_key.app_idx;
-            set_state.model_app_bind.model_id = ESP_BLE_MESH_MODEL_ID_GEN_ONOFF_SRV;
+            set_state.model_app_bind.model_id = devices[param->params->ctx.addr].sig_models[1].model_id;;
             set_state.model_app_bind.company_id = ESP_BLE_MESH_CID_NVAL;
             err = esp_ble_mesh_config_client_set_state(&common, &set_state);
             if (err) {
