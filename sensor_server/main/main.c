@@ -25,13 +25,16 @@
 #include "ble_mesh_example_nvs.h"
 #include "board.h"
 
+#include <bluetooth/mesh/properties.h>
+
+
 static const char *TAG = "sensor_server_example";
 
 #define CID_ESP     0x02E5
 
 /* Sensor Property ID */
-#define SENSOR_PROPERTY_ID_0        0x0056  /* Present Indoor Ambient Temperature */
-#define SENSOR_PROPERTY_ID_1        0x005B  /* Present Outdoor Ambient Temperature */
+#define SENSOR_PROPERTY_ID_0        BT_MESH_PROP_ID_PRESENT_INDOOR_AMB_TEMP  /* Present Indoor Ambient Temperature */
+#define SENSOR_PROPERTY_ID_1        BT_MESH_PROP_ID_PRESENT_OUTDOOR_AMB_TEMP  /* Present Outdoor Ambient Temperature */
 
 /* The characteristic of the two device properties is "Temperature 8", which is
  * used to represent a measure of temperature with a unit of 0.5 degree Celsius.
